@@ -41,7 +41,7 @@
         <hr class="my-4">
         <p class="text-center text-muted small mb-0">
             Vous n'avez pas de compte ?
-            <a href="signup.html" class="text-dark fw-bold text-decoration-none">Créer un compte</a>
+            <a href="signup.php" class="text-dark fw-bold text-decoration-none">Créer un compte</a>
         </p>
     </div>
 </div>

@@ -52,7 +52,7 @@
         <hr class="my-4">
         <p class="text-center text-muted small mb-0">
             Avez vous déjà un compte ?
-            <a href="signin.html" class="text-dark fw-bold text-decoration-none">Se connecter</a>
+            <a href="signin.php" class="text-dark fw-bold text-decoration-none">Se connecter</a>
         </p>
     </div>
 </div>
