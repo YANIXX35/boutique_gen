@@ -74,7 +74,7 @@
                     <div class="col-lg-6 col-md-5">
                         <div class="header__top__right">
                             <div class="header__top__links">
-                                <a href="#">Sign in</a>
+                                <a href="Signup.html">Sign up</a>
                                 <a href="#">FAQs</a>
                             </div>
                             <div class="header__top__hover">
