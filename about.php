@@ -74,7 +74,7 @@
                     <div class="col-lg-6 col-md-5">
                         <div class="header__top__right">
                             <div class="header__top__links">
-                                <a href="#">Sign in</a>
+                                <a href="signup.php">Sign up</a>
                                 <a href="#">FAQs</a>
                             </div>
                             <div class="header__top__hover">
@@ -94,7 +94,7 @@
             <div class="row">
                 <div class="col-lg-3 col-md-3">
                     <div class="header__logo">
-                        <a href="./index.html"><img src="img/logo.png" alt=""></a>
+                        <a href="./index.php"><img src="img/logo.png" alt=""></a>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -111,7 +111,7 @@
                                     <li><a href="./blog-details.php">Blog Details</a></li>
                                 </ul>
                             </li>
-                            <li class="active"><a href="./blog.html">Blog</a></li>
+                            <li class="active"><a href="./blog.php">Blog</a></li>
                             <li><a href="./contact.php">Contacts</a></li>
                         </ul>
                     </nav>
@@ -138,7 +138,7 @@
                     <div class="breadcrumb__text">
                         <h4>About Us</h4>
                         <div class="breadcrumb__links">
-                            <a href="./index.html">Home</a>
+                            <a href="./index.php">Home</a>
                             <span>About Us</span>
                         </div>
                     </div>
