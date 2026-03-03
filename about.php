@@ -74,11 +74,9 @@
                     <div class="col-lg-6 col-md-5">
                         <div class="header__top__right">
                             <div class="header__top__links">
-<<<<<<< HEAD
                                 <a href="signup.php">Sign up</a>
-=======
                                 <a href="Signup.html">Sign up</a>
->>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
+
                                 <a href="#">FAQs</a>
                             </div>
                             <div class="header__top__hover">
@@ -398,10 +396,8 @@
                 <div class="col-lg-12 text-center">
                     <div class="footer__copyright__text">
                         <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                        <p>Copyright ©
-                            <script>
-                                document.write(new Date().getFullYear());
-                            </script>2020
+                        <p>Copyright &copy;
+                            <?php echo date('Y'); ?>
                             All rights reserved | This template is made with <i class="fa fa-heart-o"
                             aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
                         </p>
@@ -427,13 +423,6 @@
     <!-- Js Plugins -->
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/jquery.nice-select.min.js"></script>
-    <script src="js/jquery.nicescroll.min.js"></script>
-    <script src="js/jquery.magnific-popup.min.js"></script>
-    <script src="js/jquery.countdown.min.js"></script>
-    <script src="js/jquery.slicknav.js"></script>
-    <script src="js/mixitup.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
     <script src="js/main.js"></script>
 </body>
 

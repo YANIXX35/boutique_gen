@@ -1,3 +1,69 @@
+<?php
+// Inclure la configuration de la base de données
+require_once 'config.php';
+
+
+$errors = [];
+$success_message = '';
+
+// Si le formulaire est soumis
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    
+    // Validation
+    if (empty($email) || empty($password)) {
+        $errors[] = "L'email et le mot de passe sont obligatoires";
+    }
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "L'email n'est pas valide";
+    }
+    
+    // Si pas d'erreurs, vérifier l'authentification
+    if (empty($errors)) {
+        try {
+            // Rechercher l'utilisateur dans la base de données
+            $stmt = $pdo->prepare("SELECT id, username, email, password FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+            
+            if ($user && password_verify($password, $user['password'])) {
+                // Mot de passe correct - démarrer la session
+                session_start();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['user_email'] = $user['email'];
+                
+                // Vérifier si l'utilisateur est admin pour la redirection
+                $is_admin = false;
+                try {
+                    $admin_stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+                    $admin_stmt->execute([$user['id']]);
+                    $admin_user = $admin_stmt->fetch();
+                    if ($admin_user && $admin_user['admin'] == 1) {
+                        $is_admin = true;
+                    }
+                } catch (PDOException $e) {
+                    // En cas d'erreur, continuer comme utilisateur normal
+                }
+                
+                // Rediriger vers le dashboard admin si admin, sinon vers l'accueil
+                if ($is_admin) {
+                    header('Location: admin/dashboard.php');
+                } else {
+                    header('Location: index.php');
+                }
+                exit();
+            } else {
+                $errors[] = "Email ou mot de passe incorrect";
+            }
+        } catch (PDOException $e) {
+            $errors[] = "Erreur lors de la connexion : " . $e->getMessage();
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -13,6 +79,14 @@
 <div class="d-flex align-items-center justify-content-center min-vh-100 py-5">
     <div class="bg-white border p-5" style="width: 100%; max-width: 520px;">
         <h2 class="fw-bold mb-4">Se connecter</h2>
+        
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger" role="alert">
+                <?php foreach ($errors as $error): ?>
+                    <div><?php echo htmlspecialchars($error); ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <form method="POST">
             <!-- Email -->
@@ -26,11 +100,7 @@
                 <label for="password" class="form-label fw-bold text-uppercase small">Mot de passe</label>
                 <input type="password" class="form-control rounded-0" id="password" name="password" placeholder="Votre mot de passe" required>
                 <div class="text-end mt-1">
-<<<<<<< HEAD
                     <a href="forgot-password.php" class="text-muted small text-decoration-none">Mot de passe oublié ?</a>
-=======
-                    <a href="forgot-password.html" class="text-muted small text-decoration-none">Mot de passe oublié ?</a>
->>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
                 </div>
             </div>
 

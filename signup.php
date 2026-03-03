@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 // Importer PHPMailer
 require 'PHPMailer/src/Exception.php';
@@ -9,11 +8,13 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
+// Inclure la configuration de la base de données
+require_once 'config.php';
+
 // Si le formulaire est soumis
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupérer les données du formulaire
-    $nom = $_POST['nom'] ?? '';
-    $prenom = $_POST['prenom'] ?? '';
+    $username = $_POST['username'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
@@ -21,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validation
     $errors = [];
     
-    if (empty($nom) || empty($prenom) || empty($email) || empty($password)) {
+    if (empty($username) || empty($email) || empty($password)) {
         $errors[] = "Tous les champs sont obligatoires";
     }
     
@@ -37,12 +38,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "L'email n'est pas valide";
     }
     
-    // Si pas d'erreurs, envoyer l'email
+    // Vérifier si l'email existe déjà
     if (empty($errors)) {
-        // Créer une instance de PHPMailer
-        $mail = new PHPMailer(true);
+        try {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                $errors[] = "Cet email est déjà utilisé";
+            }
+        } catch (PDOException $e) {
+            $errors[] = "Erreur lors de la vérification de l'email";
+        }
+    }
+    
+    // Si pas d'erreurs, insérer l'utilisateur et envoyer l'email
+    if (empty($errors)) {
+        // Hasher le mot de passe
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         
         try {
+            // Insérer l'utilisateur dans la base de données
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, admin) VALUES (?, ?, ?, 0)");
+            $stmt->execute([$username, $email, $hashed_password]);
+            
+            // Créer une instance de PHPMailer
+            $mail = new PHPMailer(true);
+            
             // Configuration du serveur SMTP
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
@@ -54,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Destinataire et expéditeur
             $mail->setFrom('kyliyanisse@gmail.com', 'Male Fashion');
-            $mail->addAddress($email, $prenom . ' ' . $nom);
+            $mail->addAddress($email, $username);
             
             // Contenu de l'email
             $mail->isHTML(true);
@@ -65,14 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h2 style="margin: 0;">Male Fashion</h2>
                     </div>
                     <div style="padding: 30px; background-color: #f9f9f9;">
-                        <h3 style="color: #1a1a1a;">Bienvenue ' . htmlspecialchars($prenom) . ' !</h3>
+                        <h3 style="color: #1a1a1a;">Bienvenue ' . htmlspecialchars($username) . ' !</h3>
                         <p style="color: #333; line-height: 1.6;">
                             Nous vous confirmons que votre compte a été créé avec succès sur notre boutique Male Fashion.
                         </p>
                         <div style="background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
                             <h4 style="color: #1a1a1a; margin-top: 0;">Informations du compte :</h4>
-                            <p style="margin: 5px 0;"><strong>Nom :</strong> ' . htmlspecialchars($nom) . '</p>
-                            <p style="margin: 5px 0;"><strong>Prénom :</strong> ' . htmlspecialchars($prenom) . '</p>
+                            <p style="margin: 5px 0;"><strong>Nom d\'utilisateur :</strong> ' . htmlspecialchars($username) . '</p>
                             <p style="margin: 5px 0;"><strong>Email :</strong> ' . htmlspecialchars($email) . '</p>
                         </div>
                         <p style="color: #333; line-height: 1.6;">
@@ -92,11 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             ';
             $mail->AltBody = '
-                Bienvenue ' . $prenom . ' !\n\n
+                Bienvenue ' . $username . ' !\n\n
                 Nous vous confirmons que votre compte a été créé avec succès sur notre boutique Male Fashion.\n\n
                 Informations du compte :\n
-                Nom : ' . $nom . '\n
-                Prénom : ' . $prenom . '\n
+                Nom d\'utilisateur : ' . $username . '\n
                 Email : ' . $email . '\n\n
                 Vous pouvez maintenant vous connecter : http://localhost/boutique_gen/signin.php\n\n
                  2024 Male Fashion. Tous droits réservés.
@@ -105,14 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->send();
             $success_message = "Compte créé avec succès ! Un email de confirmation a été envoyé à " . htmlspecialchars($email);
             
+        } catch (PDOException $e) {
+            $errors[] = "Erreur lors de l'inscription : " . $e->getMessage();
         } catch (Exception $e) {
             $errors[] = "Erreur lors de l'envoi de l'email: " . $mail->ErrorInfo;
         }
     }
 }
 ?>
-=======
->>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -128,7 +147,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="d-flex align-items-center justify-content-center min-vh-100 py-5">
     <div class="bg-white border p-5" style="width: 100%; max-width: 520px;">
         <h2 class="fw-bold mb-4">Créer un compte</h2>
-<<<<<<< HEAD
         
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger" role="alert">
@@ -143,20 +161,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php echo $success_message; ?>
             </div>
         <?php endif; ?>
-=======
->>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
 
         <form method="POST">
-            <!-- Nom & Prénom -->
-            <div class="row mb-3">
-                <div class="col">
-                    <label for="Nom" class="form-label fw-bold text-uppercase small">Nom</label>
-                    <input type="text" class="form-control rounded-0" id="" name="nom" placeholder="Entrez votre Nom" required>
-                </div>
-                <div class="col">
-                    <label for="Prenom" class="form-label fw-bold text-uppercase small">Prénom</label>
-                    <input type="text" class="form-control rounded-0" id="lastname" name="prenom" placeholder="Entrez votre prénom" required>
-                </div>
+            <!-- Nom d'utilisateur -->
+            <div class="mb-3">
+                <label for="username" class="form-label fw-bold text-uppercase small">Nom d'utilisateur</label>
+                <input type="text" class="form-control rounded-0" id="username" name="username" placeholder="Entrez votre nom d'utilisateur" required>
             </div>
             <!-- Email -->
             <div class="mb-3">
