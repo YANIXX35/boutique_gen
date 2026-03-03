@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 // Importer PHPMailer
 require 'PHPMailer/src/Exception.php';
@@ -110,6 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+=======
+>>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -125,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="d-flex align-items-center justify-content-center min-vh-100 py-5">
     <div class="bg-white border p-5" style="width: 100%; max-width: 520px;">
         <h2 class="fw-bold mb-4">Créer un compte</h2>
+<<<<<<< HEAD
         
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger" role="alert">
@@ -139,6 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php echo $success_message; ?>
             </div>
         <?php endif; ?>
+=======
+>>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
 
         <form method="POST">
             <!-- Nom & Prénom -->

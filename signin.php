@@ -26,7 +26,11 @@
                 <label for="password" class="form-label fw-bold text-uppercase small">Mot de passe</label>
                 <input type="password" class="form-control rounded-0" id="password" name="password" placeholder="Votre mot de passe" required>
                 <div class="text-end mt-1">
+<<<<<<< HEAD
                     <a href="forgot-password.php" class="text-muted small text-decoration-none">Mot de passe oublié ?</a>
+=======
+                    <a href="forgot-password.html" class="text-muted small text-decoration-none">Mot de passe oublié ?</a>
+>>>>>>> 3af8d19fa36655135bf1a3e6d5905067003eaa51
                 </div>
             </div>
 
