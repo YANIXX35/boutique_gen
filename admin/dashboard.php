@@ -27,6 +27,90 @@ if (!$is_admin) {
     exit();
 }
 
+// Traitement des actions CRUD pour la gestion des utilisateurs (PHP classique)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'create_user':
+                $username = $_POST['username'] ?? '';
+                $email = $_POST['email'] ?? '';
+                $password = $_POST['password'] ?? '';
+                $admin = isset($_POST['admin']) ? 1 : 0;
+                
+                if (!empty($username) && !empty($email) && !empty($password)) {
+                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare("INSERT INTO users (username, email, password, admin) VALUES (?, ?, ?, ?)");
+                    if ($stmt->execute([$username, $email, $hashed_password, $admin])) {
+                        $success_message = "Utilisateur créé avec succès";
+                    } else {
+                        $error_message = "Erreur lors de la création de l'utilisateur";
+                    }
+                } else {
+                    $error_message = "Tous les champs sont obligatoires";
+                }
+                break;
+                
+            case 'edit_user':
+                $userId = $_POST['user_id'] ?? 0;
+                $username = $_POST['username'] ?? '';
+                $email = $_POST['email'] ?? '';
+                $admin = isset($_POST['admin']) ? 1 : 0;
+                
+                if (!empty($username) && !empty($email)) {
+                    $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, admin = ? WHERE id = ?");
+                    if ($stmt->execute([$username, $email, $admin, $userId])) {
+                        $success_message = "Utilisateur modifié avec succès";
+                    } else {
+                        $error_message = "Erreur lors de la modification de l'utilisateur";
+                    }
+                } else {
+                    $error_message = "Le nom d'utilisateur et l'email sont obligatoires";
+                }
+                break;
+                
+            case 'delete_user':
+                $userId = $_POST['user_id'] ?? 0;
+                
+                // Empêcher de supprimer son propre compte
+                if ($userId == $_SESSION['user_id']) {
+                    $error_message = "Vous ne pouvez pas supprimer votre propre compte";
+                } else {
+                    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                    if ($stmt->execute([$userId])) {
+                        $success_message = "Utilisateur supprimé avec succès";
+                    } else {
+                        $error_message = "Erreur lors de la suppression de l'utilisateur";
+                    }
+                }
+                break;
+                
+            case 'toggle_admin':
+                $userId = $_POST['user_id'] ?? 0;
+                
+                // Empêcher de retirer les droits admin à soi-même
+                if ($userId == $_SESSION['user_id']) {
+                    $error_message = "Vous ne pouvez pas retirer vos propres droits admin";
+                } else {
+                    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+                    $stmt->execute([$userId]);
+                    $user = $stmt->fetch();
+                    
+                    if ($user) {
+                        $newAdmin = $user['admin'] == 1 ? 0 : 1;
+                        $stmt = $pdo->prepare("UPDATE users SET admin = ? WHERE id = ?");
+                        if ($stmt->execute([$newAdmin, $userId])) {
+                            $action = $newAdmin == 1 ? "accordés" : "retirés";
+                            $success_message = "Droits admin $action avec succès";
+                        } else {
+                            $error_message = "Erreur lors de la modification des droits admin";
+                        }
+                    }
+                }
+                break;
+        }
+    }
+}
+
 // Récupérer les statistiques
 $stats = [];
 try {
@@ -465,6 +549,7 @@ try {
             background: var(--light-bg);
         }
 
+        /* Styles optimisés pour le dashboard */
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -483,49 +568,188 @@ try {
             align-items: center;
         }
 
-        .badge-admin {
-            background: var(--success-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
+        .action-buttons {
+            display: flex;
+            gap: 8px;
         }
 
-        .badge-user {
-            background: #6c757d;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
+        .btn-action {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .badge-category {
+        .btn-edit { background: var(--accent-color); color: white; }
+        .btn-edit:hover { background: #5a67d8; }
+        
+        .btn-admin { background: var(--warning-color); color: white; }
+        .btn-admin:hover { background: #e0a800; }
+        
+        .btn-delete { background: var(--danger-color); color: white; }
+        .btn-delete:hover { background: #c82333; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover { color: var(--danger-color); }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .form-group input, .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
             background: var(--accent-color);
             color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover { background: #5a6268; }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge {
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 11px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge-admin { background: var(--success-color); }
+        .badge-user { background: #6c757d; }
+        .badge-category { background: var(--accent-color); }
+        .badge-in-stock { background: var(--success-color); }
+        .badge-out-stock { background: var(--danger-color); }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            border: none;
+            padding: 15px 20px;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-size: 16px;
             font-weight: 600;
         }
 
-        .badge-in-stock {
-            background: var(--success-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-out-stock {
-            background: var(--danger-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
+        .card-body {
+            padding: 20px;
         }
 
         .product-image {
@@ -737,9 +961,15 @@ try {
         
         <ul class="sidebar-menu">
             <li>
-                < href="#overview" class="active">
+                <a href="#overview" class="active">
                     <i class="fas fa-tachometer-alt"></i>
-                    Vue d'ensemble
+                    Tableau de bord
+                </a>
+            </li>
+            <li>
+                <a href="products.php">
+                    <i class="fas fa-box"></i>
+                    Produits
                 </a>
             </li>
             <li>
@@ -749,13 +979,7 @@ try {
                 </a>
             </li>
             <li>
-                <a href="#products">
-                    <i class="fas fa-box"></i>
-                    Produits
-                </a>
-            </li>
-            <li>
-                <a href="#categories">
+                <a href="categories.php">
                     <i class="fas fa-tags"></i>
                     Catégories
                 </a>
@@ -867,9 +1091,72 @@ try {
             <div id="users-content" class="content-section">
                 <div class="page-header">
                     <h2>Gestion des Utilisateurs</h2>
-                    <p>Liste de tous les utilisateurs inscrits</p>
+                    <p>Liste de tous les utilisateurs inscrits avec actions de gestion</p>
                 </div>
                 
+                <!-- Messages d'alerte -->
+                <?php if (isset($success_message)): ?>
+                    <div class="alert alert-success">
+                        <?php echo htmlspecialchars($success_message); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (isset($error_message)): ?>
+                    <div class="alert alert-danger">
+                        <?php echo htmlspecialchars($error_message); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Formulaire de création d'utilisateur -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Ajouter un nouvel utilisateur</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="">
+                            <input type="hidden" name="action" value="create_user">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="new_username">Nom d'utilisateur:</label>
+                                        <input type="text" class="form-control" id="new_username" name="username" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="new_email">Email:</label>
+                                        <input type="email" class="form-control" id="new_email" name="email" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="new_password">Mot de passe:</label>
+                                        <input type="password" class="form-control" id="new_password" name="password" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="new_admin">Admin:</label>
+                                        <select class="form-control" id="new_admin" name="admin">
+                                            <option value="0">Non</option>
+                                            <option value="1">Oui</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary btn-block">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Tableau des utilisateurs -->
                 <div class="users-table">
                     <?php
                     $users_list = [];
@@ -892,7 +1179,8 @@ try {
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>Utilisateur</th>
+                                        <th>ID</th>
+                                        <th>Nom d'utilisateur</th>
                                         <th>Email</th>
                                         <th>Rôle</th>
                                         <th>Date d'inscription</th>
@@ -902,6 +1190,7 @@ try {
                                 <tbody>
                                     <?php foreach ($users_list as $user): ?>
                                         <tr>
+                                            <td><?php echo $user['id']; ?></td>
                                             <td>
                                                 <div class="user-info">
                                                     <div class="user-avatar">
@@ -923,13 +1212,36 @@ try {
                                             <td><?php echo $user['created_date']; ?></td>
                                             <td>
                                                 <div class="action-buttons">
-                                                    <button class="btn-action btn-edit" onclick="editUser(<?php echo $user['id']; ?>)">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                                        <button class="btn-action btn-delete" onclick="deleteUser(<?php echo $user['id']; ?>)">
-                                                            <i class="fas fa-trash"></i>
+                                                    <!-- Formulaire pour modifier -->
+                                                    <form method="POST" action="" style="display: inline;">
+                                                        <input type="hidden" name="action" value="edit_user">
+                                                        <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($user['username']); ?>">
+                                                        <input type="hidden" name="email" value="<?php echo htmlspecialchars($user['email']); ?>">
+                                                        <input type="hidden" name="admin" value="<?php echo $user['admin']; ?>">
+                                                        <button type="submit" class="btn-action btn-edit" title="Modifier">
+                                                            <i class="fas fa-edit"></i>
                                                         </button>
+                                                    </form>
+                                                    
+                                                    <!-- Formulaire pour basculer admin -->
+                                                    <form method="POST" action="" style="display: inline;">
+                                                        <input type="hidden" name="action" value="toggle_admin">
+                                                        <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                                        <button type="submit" class="btn-action btn-admin" title="Basculer admin">
+                                                            <i class="fas fa-user-shield"></i>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <!-- Formulaire pour supprimer -->
+                                                    <?php if ($user['id'] != $_SESSION['user_id']): ?>
+                                                        <form method="POST" action="" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                                            <input type="hidden" name="action" value="delete_user">
+                                                            <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                                            <button type="submit" class="btn-action btn-delete" title="Supprimer">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
                                                     <?php endif; ?>
                                                 </div>
                                             </td>
@@ -1187,37 +1499,6 @@ try {
                     showSection(sectionId);
                 });
             });
-
-            // Functions for CRUD operations (placeholders for now)
-            window.editUser = function(userId) {
-                alert('Fonction d\'édition à implémenter pour l\'utilisateur ID: ' + userId);
-            };
-
-            window.deleteUser = function(userId) {
-                if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-                    alert('Fonction de suppression à implémenter pour l\'utilisateur ID: ' + userId);
-                }
-            };
-
-            window.editProduct = function(productId) {
-                alert('Fonction d\'édition à implémenter pour le produit ID: ' + productId);
-            };
-
-            window.deleteProduct = function(productId) {
-                if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-                    alert('Fonction de suppression à implémenter pour le produit ID: ' + productId);
-                }
-            };
-
-            window.editCategory = function(categoryId) {
-                alert('Fonction d\'édition à implémenter pour la catégorie ID: ' + categoryId);
-            };
-
-            window.deleteCategory = function(categoryId) {
-                if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-                    alert('Fonction de suppression à implémenter pour la catégorie ID: ' + categoryId);
-                }
-            };
         });
     </script>
 </body>

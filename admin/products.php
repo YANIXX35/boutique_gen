@@ -27,14 +27,14 @@ if (!$is_admin) {
     exit();
 }
 
-// Récupérer tous les produits avec leurs catégories
+// Récupérer tous les produits avec leurs catégories (adapté à votre structure)
 $products = [];
 try {
     $stmt = $pdo->query("
         SELECT p.*, c.name as category_name 
         FROM products p 
         LEFT JOIN categories c ON p.category_id = c.id 
-        ORDER BY p.created_at DESC
+        ORDER BY p.id DESC
     ");
     $products = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -268,7 +268,13 @@ try {
                 <i class="fas fa-arrow-left"></i>
                 Retour au Dashboard
             </a>
-            <h1 class="page-title mt-3">Gestion des Produits</h1>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <h1 class="page-title mb-0">Gestion des Produits</h1>
+                <a href="ajout.php" class="btn btn-primary" style="background: var(--accent-color); border: none; padding: 12px 24px; border-radius: 8px; color: white; text-decoration: none; font-weight: 500;">
+                    <i class="fas fa-plus me-2"></i>
+                    Ajouter un produit
+                </a>
+            </div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
@@ -281,7 +287,28 @@ try {
         <div class="products-table">
             <?php if (isset($error)): ?>
                 <div class="alert alert-danger m-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
                     <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['success_message'])): ?>
+                <div class="alert alert-success m-3">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <?php 
+                    echo htmlspecialchars($_SESSION['success_message']); 
+                    unset($_SESSION['success_message']);
+                    ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['error_message'])): ?>
+                <div class="alert alert-danger m-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <?php 
+                    echo htmlspecialchars($_SESSION['error_message']); 
+                    unset($_SESSION['error_message']);
+                    ?>
                 </div>
             <?php endif; ?>
 
@@ -299,7 +326,6 @@ try {
                                 <th>Produit</th>
                                 <th>Catégorie</th>
                                 <th>Prix</th>
-                                <th>Stock</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -317,7 +343,7 @@ try {
                                             <?php endif; ?>
                                             <div class="product-details">
                                                 <h6><?php echo htmlspecialchars($product['name']); ?></h6>
-                                                <p><?php echo substr(htmlspecialchars($product['description'] ?? ''), 0, 50) . '...'; ?></p>
+                                                <p>ID: <?php echo htmlspecialchars($product['id']); ?></p>
                                             </div>
                                         </div>
                                     </td>
@@ -332,22 +358,16 @@ try {
                                         <span class="price"><?php echo number_format($product['price'] ?? 0, 2); ?> €</span>
                                     </td>
                                     <td>
-                                        <?php 
-                                        $stock = $product['stock'] ?? 0;
-                                        if ($stock > 0): ?>
-                                            <span class="badge-in-stock">En stock (<?php echo $stock; ?>)</span>
-                                        <?php else: ?>
-                                            <span class="badge-out-stock">Rupture</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
                                         <div class="action-buttons">
-                                            <button class="btn-action btn-edit" onclick="editProduct(<?php echo $product['id']; ?>)">
+                                            <a href="modifier.php?id=<?php echo $product['id']; ?>" class="btn-action btn-edit" style="display: inline-block; text-decoration: none;">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn-action btn-delete" onclick="deleteProduct(<?php echo $product['id']; ?>)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            </a>
+                                            <form method="POST" action="supprimer.php" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');">
+                                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                                <button type="submit" class="btn-action btn-delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -358,19 +378,5 @@ try {
             <?php endif; ?>
         </div>
     </div>
-
-    <script>
-        function editProduct(productId) {
-            // TODO: Implémenter la fonction d'édition
-            alert('Fonction d\'édition à implémenter pour le produit ID: ' + productId);
-        }
-
-        function deleteProduct(productId) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-                // TODO: Implémenter la fonction de suppression
-                alert('Fonction de suppression à implémenter pour le produit ID: ' + productId);
-            }
-        }
-    </script>
 </body>
 </html>

@@ -119,83 +119,75 @@ try {
     <style>
         :root {
             --primary-color: #1a1a1a;
-            --secondary-color: #2d2d2d;
+            --secondary-color: #333333;
             --accent-color: #667eea;
             --success-color: #28a745;
-            --danger-color: #dc3545;
             --warning-color: #ffc107;
-            --border-color: #e0e0e0;
-            --text-color: #333;
+            --danger-color: #dc3545;
             --light-bg: #f8f9fa;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
             font-family: 'Nunito Sans', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-        }
-
-        .container-fluid {
-            padding: 30px;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 20px;
         }
 
         .page-header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
 
         .page-title {
-            font-size: 2.5rem;
+            font-size: 28px;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin: 0;
         }
 
         .breadcrumb {
-            background: transparent;
+            background: none;
             padding: 0;
+            margin: 10px 0 0 0;
         }
 
-        .breadcrumb-item a {
-            color: var(--accent-color);
-            text-decoration: none;
+        .breadcrumb-item {
+            color: #6c757d;
         }
 
-        .breadcrumb-item a:hover {
-            text-decoration: underline;
+        .breadcrumb-item.active {
+            color: var(--primary-color);
         }
 
         .users-table {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .table {
             margin: 0;
         }
 
-        .table thead th {
-            background: var(--primary-color);
-            color: white;
+        .table th {
+            background: var(--light-bg);
             border: none;
-            padding: 20px;
+            padding: 15px;
             font-weight: 600;
+            color: var(--primary-color);
             text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
+            font-size: 12px;
         }
 
-        .table tbody td {
-            padding: 20px;
+        .table td {
+            padding: 15px;
             vertical-align: middle;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--light-bg);
         }
 
         .table tbody tr:hover {
@@ -261,15 +253,6 @@ try {
             background: #5a67d8;
         }
 
-        .btn-admin {
-            background: var(--warning-color);
-            color: white;
-        }
-
-        .btn-admin:hover {
-            background: #e0a800;
-        }
-
         .btn-delete {
             background: var(--danger-color);
             color: white;
@@ -296,7 +279,6 @@ try {
         .btn-back:hover {
             background: var(--secondary-color);
             transform: translateY(-2px);
-            color: white;
         }
 
         .empty-state {
@@ -311,141 +293,7 @@ try {
             color: var(--border-color);
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .close {
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #aaa;
-        }
-
-        .close:hover {
-            color: var(--danger-color);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn-primary {
-            background: var(--accent-color);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
         @media (max-width: 768px) {
-            .container-fluid {
-                padding: 15px;
-            }
-            
-            .page-title {
-                font-size: 1.8rem;
-            }
-            
             .table-responsive {
                 font-size: 14px;
             }
@@ -472,9 +320,6 @@ try {
                 </ol>
             </nav>
         </div>
-
-        <!-- Alert Messages -->
-        <div id="alertMessage" class="alert"></div>
 
         <!-- Users Table -->
         <div class="users-table">
@@ -504,7 +349,7 @@ try {
                         </thead>
                         <tbody>
                             <?php foreach ($users as $user): ?>
-                                <tr id="user-<?php echo $user['id']; ?>">
+                                <tr>
                                     <td>
                                         <div class="user-info">
                                             <div class="user-avatar">
@@ -526,11 +371,8 @@ try {
                                     <td><?php echo $user['created_date']; ?></td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn-action btn-edit" onclick="openEditModal(<?php echo $user['id']; ?>)">
+                                            <button class="btn-action btn-edit" onclick="editUser(<?php echo $user['id']; ?>)">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn-action btn-admin" onclick="toggleAdmin(<?php echo $user['id']; ?>, <?php echo $user['admin']; ?>)">
-                                                <i class="fas fa-user-shield"></i>
                                             </button>
                                             <?php if ($user['id'] != $_SESSION['user_id']): ?>
                                                 <button class="btn-action btn-delete" onclick="deleteUser(<?php echo $user['id']; ?>)">
@@ -548,177 +390,16 @@ try {
         </div>
     </div>
 
-    <!-- Edit User Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Modifier l'utilisateur</h2>
-                <span class="close" onclick="closeEditModal()">&times;</span>
-            </div>
-            <form id="editForm">
-                <div class="form-group">
-                    <label for="editUsername">Nom d'utilisateur:</label>
-                    <input type="text" id="editUsername" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="editEmail">Email:</label>
-                    <input type="email" id="editEmail" name="email" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Annuler</button>
-                    <button type="submit" class="btn-primary">Enregistrer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        let currentUserId = null;
-
-        // Afficher les messages d'alerte
-        function showAlert(message, type) {
-            const alertDiv = document.getElementById('alertMessage');
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.textContent = message;
-            alertDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                alertDiv.style.display = 'none';
-            }, 5000);
+        function editUser(userId) {
+            // TODO: Implémenter la fonction d'édition
+            alert('Fonction d\'édition à implémenter pour l\'utilisateur ID: ' + userId);
         }
 
-        // Ouvrir le modal d'édition
-        function openEditModal(userId) {
-            currentUserId = userId;
-            
-            // Récupérer les informations de l'utilisateur
-            fetch('', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=get_user&user_id=${userId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('editUsername').value = data.user.username;
-                    document.getElementById('editEmail').value = data.user.email;
-                    document.getElementById('editModal').style.display = 'block';
-                } else {
-                    showAlert(data.message, 'danger');
-                }
-            })
-            .catch(error => {
-                showAlert('Erreur lors de la récupération des informations', 'danger');
-            });
-        }
-
-        // Fermer le modal d'édition
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-            document.getElementById('editForm').reset();
-            currentUserId = null;
-        }
-
-        // Gérer la soumission du formulaire d'édition
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            formData.append('action', 'edit_user');
-            formData.append('user_id', currentUserId);
-            
-            fetch('', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert(data.message, 'success');
-                    closeEditModal();
-                    // Recharger la page pour mettre à jour les données
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    showAlert(data.message, 'danger');
-                }
-            })
-            .catch(error => {
-                showAlert('Erreur lors de la modification', 'danger');
-            });
-        });
-
-        // Basculer le rôle admin
-        function toggleAdmin(userId, isAdmin) {
-            const action = isAdmin == 1 ? 'retirer' : 'accorder';
-            
-            if (!confirm(`Êtes-vous sûr de vouloir ${action} les droits admin à cet utilisateur ?`)) {
-                return;
-            }
-            
-            fetch('', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=toggle_admin&user_id=${userId}&is_admin=${isAdmin}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert(data.message, 'success');
-                    // Recharger la page pour mettre à jour les données
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    showAlert(data.message, 'danger');
-                }
-            })
-            .catch(error => {
-                showAlert('Erreur lors de la modification du rôle', 'danger');
-            });
-        }
-
-        // Supprimer un utilisateur
         function deleteUser(userId) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.')) {
-                return;
-            }
-            
-            fetch('', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=delete_user&user_id=${userId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert(data.message, 'success');
-                    // Supprimer la ligne du tableau
-                    const row = document.getElementById(`user-${userId}`);
-                    if (row) {
-                        row.remove();
-                    }
-                } else {
-                    showAlert(data.message, 'danger');
-                }
-            })
-            .catch(error => {
-                showAlert('Erreur lors de la suppression', 'danger');
-            });
-        }
-
-        // Fermer le modal si on clique en dehors
-        window.onclick = function(event) {
-            const modal = document.getElementById('editModal');
-            if (event.target == modal) {
-                closeEditModal();
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+                // TODO: Implémenter la fonction de suppression
+                alert('Fonction de suppression à implémenter pour l\'utilisateur ID: ' + userId);
             }
         }
     </script>

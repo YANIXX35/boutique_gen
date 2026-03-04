@@ -27,6 +27,34 @@ if (!$is_admin) {
     exit();
 }
 
+// Traitement du formulaire d'ajout de catégorie
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'] ?? '';
+    $parent_id = $_POST['parent_id'] ?? null;
+    $errors = [];
+    
+    // Validation
+    if (empty($name)) $errors[] = "Le nom de la catégorie est obligatoire";
+    
+    if (empty($errors)) {
+        try {
+            // Insérer la catégorie
+            $stmt = $pdo->prepare("
+                INSERT INTO categories (name, parent_id) 
+                VALUES (?, ?)
+            ");
+            $stmt->execute([$name, $parent_id]);
+            
+            $_SESSION['success_message'] = "Catégorie ajoutée avec succès !";
+            header('Location: categories.php');
+            exit();
+            
+        } catch (PDOException $e) {
+            $errors[] = "Erreur lors de l'ajout de la catégorie : " . $e->getMessage();
+        }
+    }
+}
+
 // Récupérer toutes les catégories avec le nombre de produits
 $categories = [];
 try {
@@ -40,6 +68,15 @@ try {
     $categories = $stmt->fetchAll();
 } catch (PDOException $e) {
     $error = "Erreur lors de la récupération des catégories";
+}
+
+// Récupérer les catégories pour le select parent
+$parent_categories = [];
+try {
+    $stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
+    $parent_categories = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $parent_categories = [];
 }
 ?>
 <!DOCTYPE html>
@@ -260,14 +297,40 @@ try {
                 <i class="fas fa-arrow-left"></i>
                 Retour au Dashboard
             </a>
-            <h1 class="page-title mt-3">Gestion des Catégories</h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Catégories</li>
-                </ol>
-            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title mb-0">Gestion des Catégories</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Catégories</li>
+                        </ol>
+                    </nav>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="fas fa-plus me-2"></i>
+                    Ajouter une catégorie
+                </button>
+            </div>
         </div>
+
+        <!-- Messages de succès/erreur -->
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success">
+                <?php 
+                echo htmlspecialchars($_SESSION['success_message']); 
+                unset($_SESSION['success_message']);
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $error): ?>
+                    <?php echo htmlspecialchars($error); ?><br>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <!-- Categories Grid -->
         <?php if (isset($error)): ?>
@@ -326,6 +389,48 @@ try {
         <?php endif; ?>
     </div>
 
+    <!-- Modal d'ajout de catégorie -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCategoryModalLabel">
+                        <i class="fas fa-plus me-2"></i>
+                        Ajouter une nouvelle catégorie
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nom de la catégorie</label>
+                            <input type="text" class="form-control" name="name" 
+                                   placeholder="Ex: Vêtements Homme" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Catégorie parente</label>
+                            <select class="form-select" name="parent_id">
+                                <option value="">Aucune (catégorie principale)</option>
+                                <?php foreach ($parent_categories as $category): ?>
+                                    <option value="<?php echo $category['id']; ?>">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Ajouter la catégorie
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function editCategory(categoryId) {
             // TODO: Implémenter la fonction d'édition
@@ -334,10 +439,14 @@ try {
 
         function deleteCategory(categoryId) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-                // TODO: Implémenter la fonction de suppression
-                alert('Fonction de suppression à implémenter pour la catégorie ID: ' + categoryId);
+                window.location.href = 'supprimer_categorie.php?id=' + categoryId;
             }
         }
+
+        // Réinitialiser le formulaire du modal à la fermeture
+        document.getElementById('addCategoryModal').addEventListener('hidden.bs.modal', function () {
+            document.querySelector('#addCategoryModal form').reset();
+        });
     </script>
 </body>
 </html>

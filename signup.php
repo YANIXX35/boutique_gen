@@ -1,13 +1,4 @@
 <?php
-// Importer PHPMailer
-require 'PHPMailer/src/Exception.php';
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
-
 // Inclure la configuration de la base de données
 require_once 'config.php';
 
@@ -51,83 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Si pas d'erreurs, insérer l'utilisateur et envoyer l'email
+    // Si pas d'erreurs, insérer l'utilisateur dans la base de données
     if (empty($errors)) {
-        // Hasher le mot de passe
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        
         try {
+            // Hasher le mot de passe
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            
             // Insérer l'utilisateur dans la base de données
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, admin) VALUES (?, ?, ?, 0)");
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, admin, created_at) VALUES (?, ?, ?, 0, NOW())");
             $stmt->execute([$username, $email, $hashed_password]);
             
-            // Créer une instance de PHPMailer
-            $mail = new PHPMailer(true);
-            
-            // Configuration du serveur SMTP
-            $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'kyliyanisse@gmail.com';
-            $mail->Password   = 'qvqz oklq lbfl ouim';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
-            
-            // Destinataire et expéditeur
-            $mail->setFrom('kyliyanisse@gmail.com', 'Male Fashion');
-            $mail->addAddress($email, $username);
-            
-            // Contenu de l'email
-            $mail->isHTML(true);
-            $mail->Subject = 'Confirmation de création de compte - Male Fashion';
-            $mail->Body    = '
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <div style="background-color: #1a1a1a; color: white; padding: 20px; text-align: center;">
-                        <h2 style="margin: 0;">Male Fashion</h2>
-                    </div>
-                    <div style="padding: 30px; background-color: #f9f9f9;">
-                        <h3 style="color: #1a1a1a;">Bienvenue ' . htmlspecialchars($username) . ' !</h3>
-                        <p style="color: #333; line-height: 1.6;">
-                            Nous vous confirmons que votre compte a été créé avec succès sur notre boutique Male Fashion.
-                        </p>
-                        <div style="background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                            <h4 style="color: #1a1a1a; margin-top: 0;">Informations du compte :</h4>
-                            <p style="margin: 5px 0;"><strong>Nom d\'utilisateur :</strong> ' . htmlspecialchars($username) . '</p>
-                            <p style="margin: 5px 0;"><strong>Email :</strong> ' . htmlspecialchars($email) . '</p>
-                        </div>
-                        <p style="color: #333; line-height: 1.6;">
-                            Vous pouvez maintenant vous connecter et profiter de nos collections exclusives.
-                        </p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="http://localhost/boutique_gen/signin.php" 
-                               style="background-color: #1a1a1a; color: white; padding: 12px 30px; 
-                                      text-decoration: none; border-radius: 3px; display: inline-block;">
-                                Me connecter
-                            </a>
-                        </div>
-                    </div>
-                    <div style="background-color: #1a1a1a; color: white; padding: 20px; text-align: center; font-size: 12px;">
-                        <p style="margin: 0;"> 2024 Male Fashion. Tous droits réservés.</p>
-                    </div>
-                </div>
-            ';
-            $mail->AltBody = '
-                Bienvenue ' . $username . ' !\n\n
-                Nous vous confirmons que votre compte a été créé avec succès sur notre boutique Male Fashion.\n\n
-                Informations du compte :\n
-                Nom d\'utilisateur : ' . $username . '\n
-                Email : ' . $email . '\n\n
-                Vous pouvez maintenant vous connecter : http://localhost/boutique_gen/signin.php\n\n
-                 2024 Male Fashion. Tous droits réservés.
-            ';
-            
-            $mail->send();
-            $success_message = "Compte créé avec succès ! Un email de confirmation a été envoyé à " . htmlspecialchars($email);
+            $success_message = "Compte créé avec succès ! Vous pouvez maintenant vous connecter.";
             
         } catch (PDOException $e) {
             $errors[] = "Erreur lors de l'inscription : " . $e->getMessage();
-        } catch (Exception $e) {
-            $errors[] = "Erreur lors de l'envoi de l'email: " . $mail->ErrorInfo;
         }
     }
 }

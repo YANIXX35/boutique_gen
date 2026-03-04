@@ -20,10 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "L'email n'est pas valide";
     }
     
-    // Si pas d'erreurs, vérifier l'authentification
     if (empty($errors)) {
         try {
-            // Rechercher l'utilisateur dans la base de données
             $stmt = $pdo->prepare("SELECT id, username, email, password FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
@@ -35,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['user_email'] = $user['email'];
                 
-                // Vérifier si l'utilisateur est admin pour la redirection
                 $is_admin = false;
                 try {
                     $admin_stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
