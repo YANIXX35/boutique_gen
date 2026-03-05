@@ -1,31 +1,111 @@
 <?php
-// Démarrer la session et vérifier si l'utilisateur est admin
 session_start();
 require_once '../config.php';
 
-// Vérifier si l'utilisateur est connecté et est admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
-    header('Location: ../signin.php');
-    exit();
-}
-
-// Vérifier si l'utilisateur est admin
-$is_admin = false;
-try {
-    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch();
-    if ($user && $user['admin'] == 1) {
-        $is_admin = true;
+/**
+ * Classe AuthService - Vérification admin centralisée
+ */
+class AuthService {
+    public static function requireAdmin() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ../signin.php');
+            exit();
+        }
+        
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT admin FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        
+        if (!$user || $user['admin'] != 1) {
+            header('Location: ../index.php');
+            exit();
+        }
     }
-} catch (PDOException $e) {
-    $is_admin = false;
 }
 
-if (!$is_admin) {
-    header('Location: ../index.php');
-    exit();
+/**
+ * Classe Product - Gestion des produits en POO
+ */
+class Product {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function find($id) {
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+    
+    public function update($id, $name, $price, $categoryId, $image = null) {
+        if ($image !== null) {
+            $stmt = $this->db->prepare("UPDATE products SET name = ?, price = ?, category_id = ?, image = ? WHERE id = ?");
+            return $stmt->execute([$name, $price, $categoryId, $image, $id]);
+        } else {
+            $stmt = $this->db->prepare("UPDATE products SET name = ?, price = ?, category_id = ? WHERE id = ?");
+            return $stmt->execute([$name, $price, $categoryId, $id]);
+        }
+    }
 }
+
+/**
+ * Classe Category - Gestion des catégories en POO
+ */
+class Category {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function getAll() {
+        $stmt = $this->db->query("SELECT * FROM categories ORDER BY name");
+        return $stmt->fetchAll();
+    }
+}
+
+/**
+ * Classe ValidationService - Validation centralisée
+ */
+class ValidationService {
+    public static function validateProduct($name, $price, $categoryId) {
+        $errors = [];
+        if (empty($name)) $errors[] = "Nom obligatoire";
+        if (empty($price) || !is_numeric($price)) $errors[] = "Prix invalide";
+        if (empty($categoryId)) $errors[] = "Catégorie obligatoire";
+        return $errors;
+    }
+    
+    public static function validateImage($file) {
+        if ($file['error'] != 0) return null;
+        
+        $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        if (!in_array($file_extension, $allowed_types)) {
+            return ['error' => "Format non autorisé"];
+        }
+        
+        $new_filename = uniqid('product_', true) . '.' . $file_extension;
+        $upload_path = '../img/product/' . $new_filename;
+        
+        if (!is_dir('../img/product')) {
+            mkdir('../img/product', 0777, true);
+        }
+        
+        if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+            return ['filename' => $new_filename];
+        }
+        
+        return ['error' => "Erreur upload image"];
+    }
+}
+
+// Vérification admin avec la classe AuthService
+AuthService::requireAdmin();
 
 // Récupérer l'ID du produit
 $product_id = $_GET['id'] ?? 0;
@@ -34,20 +114,50 @@ if (!$product_id) {
     exit();
 }
 
-// Récupérer le produit
-$product = null;
-try {
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-    $stmt->execute([$product_id]);
-    $product = $stmt->fetch();
-} catch (PDOException $e) {
-    $product = null;
-}
+// Récupérer le produit avec POO
+$productModel = new Product();
+$product = $productModel->find($product_id);
 
 if (!$product) {
     header('Location: products.php');
     exit();
 }
+
+// Traitement du formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'] ?? '';
+    $price = $_POST['price'] ?? '';
+    $category_id = $_POST['category_id'] ?? '';
+    $image = $product['image']; // Garder l'ancienne image par défaut
+    $errors = [];
+    
+    // Validation avec ValidationService
+    $errors = ValidationService::validateProduct($name, $price, $category_id);
+    
+    // Gestion de l'image avec ValidationService
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+        $imageResult = ValidationService::validateImage($_FILES['image']);
+        if (isset($imageResult['error'])) {
+            $errors[] = $imageResult['error'];
+        } else {
+            $image = $imageResult['filename'];
+        }
+    }
+    
+    if (empty($errors)) {
+        if ($productModel->update($product_id, $name, $price, $category_id, $image)) {
+            $_SESSION['success'] = "Produit modifié";
+            header('Location: products.php');
+            exit();
+        } else {
+            $errors[] = "Erreur lors de la modification";
+        }
+    }
+}
+
+$category = new Category();
+$categories = $category->getAll();
+?>
 
 // Traitement du formulaire de modification
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

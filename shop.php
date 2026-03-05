@@ -1,18 +1,66 @@
 <?php
 require_once 'config.php';
 
-// Récupérer tous les produits avec leurs catégories
-$products = [];
-try {
-    $stmt = $pdo->query("
-        SELECT p.*, c.name as category_name 
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.id 
-        ORDER BY p.id DESC
-    ");
-    $products = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $products = [];
+/**
+ * Classe Product - Gestion des produits en POO
+ */
+class Product {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function getAllWithCategories() {
+        $stmt = $this->db->query("
+            SELECT p.*, c.name as category_name 
+            FROM products p 
+            LEFT JOIN categories c ON p.category_id = c.id 
+            ORDER BY p.id DESC
+        ");
+        return $stmt->fetchAll();
+    }
+    
+    public function getByCategory($categoryId) {
+        $stmt = $this->db->prepare("
+            SELECT p.*, c.name as category_name 
+            FROM products p 
+            LEFT JOIN categories c ON p.category_id = c.id 
+            WHERE p.category_id = ? 
+            ORDER BY p.id DESC
+        ");
+        $stmt->execute([$categoryId]);
+        return $stmt->fetchAll();
+    }
+}
+
+/**
+ * Classe Category - Gestion des catégories en POO
+ */
+class Category {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function getAll() {
+        $stmt = $this->db->query("SELECT * FROM categories ORDER BY name");
+        return $stmt->fetchAll();
+    }
+}
+
+// Récupérer tous les produits avec leurs catégories en POO
+$productModel = new Product();
+$products = $productModel->getAllWithCategories();
+
+// Récupérer les catégories pour le filtre
+$categoryModel = new Category();
+$categories = $categoryModel->getAll();
+
+// Filtrage par catégorie si demandé
+if (isset($_GET['category']) && is_numeric($_GET['category'])) {
+    $products = $productModel->getByCategory($_GET['category']);
 }
 ?>
 <!DOCTYPE html>

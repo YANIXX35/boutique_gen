@@ -244,8 +244,8 @@
                         </div>
                         <ul>
                             <li>
-                                <h4>🇫🇷 France</h4>
-                                <p>123 Avenue de la Mode<br />75001 Paris<br />+33 1 23 45 67 89</p>
+                                <h4>🇫🇷 IVOIRE IVOIRE225</h4>
+                                <p>123 Avenue epiteh<br />JULES VERNE<br />+225 1 23 45 67 89</p>
                             </li>
                             <li>
                                 <h4>📧 Email</h4>

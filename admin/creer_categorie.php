@@ -1,116 +1,80 @@
 <?php
-// Démarrer la session et vérifier si l'utilisateur est admin
 session_start();
 require_once '../config.php';
 
-// Vérifier si l'utilisateur est connecté et est admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: ../signin.php');
     exit();
 }
 
-// Vérifier si l'utilisateur est admin
-$is_admin = false;
-try {
-    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch();
-    if ($user && $user['admin'] == 1) {
-        $is_admin = true;
-    }
-} catch (PDOException $e) {
-    $is_admin = false;
-}
+$stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch();
 
-if (!$is_admin) {
+if (!$user || $user['admin'] != 1) {
     header('Location: ../index.php');
     exit();
 }
 
-// Traitement du formulaire d'ajout
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';
     $parent_id = $_POST['parent_id'] ?? null;
     $errors = [];
     
-    // Validation
-    if (empty($name)) $errors[] = "Le nom de la catégorie est obligatoire";
+    if (empty($name)) $errors[] = "Nom obligatoire";
     
     if (empty($errors)) {
-        try {
-            // Insérer la catégorie
-            $stmt = $pdo->prepare("
-                INSERT INTO categories (name, parent_id) 
-                VALUES (?, ?)
-            ");
-            $stmt->execute([$name, $parent_id]);
-            
-            $success_message = "Catégorie ajoutée avec succès !";
-            
-        } catch (PDOException $e) {
-            $errors[] = "Erreur lors de l'ajout de la catégorie : " . $e->getMessage();
-        }
+        $stmt = $pdo->prepare("INSERT INTO categories (name, parent_id) VALUES (?, ?)");
+        $stmt->execute([$name, $parent_id]);
+        
+        $_SESSION['success'] = "Catégorie ajoutée";
+        header('Location: categories.php');
+        exit();
     }
 }
 
-// Récupérer les catégories
-$categories = [];
-try {
-    $stmt = $pdo->query("SELECT * FROM categories ORDER BY name");
-    $categories = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $categories = [];
-}
+$categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 ?>
 
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter une Catégorie - Admin</title>
+    <title>Ajouter Catégorie</title>
 </head>
 <body>
-    <h2>Ajouter une Nouvelle Catégorie</h2>
+    <h2>Ajouter une Catégorie</h2>
+    
+    <a href="categories.php">← Retour</a>
     
     <?php if (!empty($errors)): ?>
-        <div style="color: red; border: 1px solid red; padding: 10px; margin: 10px 0;">
+        <div style="color: red; padding: 10px; margin: 10px 0; border: 1px solid red;">
             <?php foreach ($errors as $error): ?>
-                <?php echo htmlspecialchars($error); ?><br>
+                <?= $error ?><br>
             <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-    
-    <?php if (!empty($success_message)): ?>
-        <div style="color: green; border: 1px solid green; padding: 10px; margin: 10px 0;">
-            <?php echo htmlspecialchars($success_message); ?>
         </div>
     <?php endif; ?>
 
     <form method="POST">
-        <table border="1" cellpadding="5" cellspacing="0">
+        <table>
             <tr>
-                <td><label for="name">Nom de la catégorie:</label></td>
-                <td><input type="text" name="name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>" required></td>
+                <td>Nom de la catégorie:</td>
+                <td><input type="text" name="name" required></td>
             </tr>
             <tr>
-                <td><label for="parent_id">Catégorie parente:</label></td>
+                <td>Catégorie parente:</td>
                 <td>
                     <select name="parent_id">
-                        <option value="">Aucune (catégorie principale)</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo $category['id']; ?>"
-                                    <?php echo (isset($_POST['parent_id']) && $_POST['parent_id'] == $category['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </option>
+                        <option value="">Aucune (principale)</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </td>
             </tr>
             <tr>
-                <td colspan="2" align="center">
+                <td colspan="2" style="text-align: center;">
                     <input type="submit" value="Ajouter la catégorie">
-                    <a href="categories.php" style="margin-left: 20px;">Retour</a>
                 </td>
             </tr>
         </table>

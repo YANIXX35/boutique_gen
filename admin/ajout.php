@@ -1,33 +1,101 @@
 <?php
-// Démarrer la session et vérifier si l'utilisateur est admin
 session_start();
 require_once '../config.php';
 
-// Vérifier si l'utilisateur est connecté et est admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
-    header('Location: ../signin.php');
-    exit();
-}
-
-// Vérifier si l'utilisateur est admin
-$is_admin = false;
-try {
-    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch();
-    if ($user && $user['admin'] == 1) {
-        $is_admin = true;
+/**
+ * Classe AuthService - Vérification admin centralisée
+ */
+class AuthService {
+    public static function requireAdmin() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ../signin.php');
+            exit();
+        }
+        
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT admin FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        
+        if (!$user || $user['admin'] != 1) {
+            header('Location: ../index.php');
+            exit();
+        }
     }
-} catch (PDOException $e) {
-    $is_admin = false;
 }
 
-if (!$is_admin) {
-    header('Location: ../index.php');
-    exit();
+/**
+ * Classe Product - Gestion des produits en POO
+ */
+class Product {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function create($name, $price, $categoryId, $image = '') {
+        $stmt = $this->db->prepare("INSERT INTO products (name, price, category_id, image) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([$name, $price, $categoryId, $image]);
+    }
 }
 
-// Traitement du formulaire d'ajout
+/**
+ * Classe Category - Gestion des catégories en POO
+ */
+class Category {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function getAll() {
+        $stmt = $this->db->query("SELECT * FROM categories ORDER BY name");
+        return $stmt->fetchAll();
+    }
+}
+
+/**
+ * Classe ValidationService - Validation centralisée
+ */
+class ValidationService {
+    public static function validateProduct($name, $price, $categoryId) {
+        $errors = [];
+        if (empty($name)) $errors[] = "Nom obligatoire";
+        if (empty($price) || !is_numeric($price)) $errors[] = "Prix invalide";
+        if (empty($categoryId)) $errors[] = "Catégorie obligatoire";
+        return $errors;
+    }
+    
+    public static function validateImage($file) {
+        if ($file['error'] != 0) return null;
+        
+        $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        if (!in_array($file_extension, $allowed_types)) {
+            return ['error' => "Format non autorisé"];
+        }
+        
+        $new_filename = uniqid('product_', true) . '.' . $file_extension;
+        $upload_path = '../img/product/' . $new_filename;
+        
+        if (!is_dir('../img/product')) {
+            mkdir('../img/product', 0777, true);
+        }
+        
+        if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+            return ['filename' => $new_filename];
+        }
+        
+        return ['error' => "Erreur upload image"];
+    }
+}
+
+// Vérification admin avec la classe AuthService
+AuthService::requireAdmin();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';
     $price = $_POST['price'] ?? '';
@@ -35,123 +103,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $image = '';
     $errors = [];
     
-    // Gestion de l'image
+    // Validation avec ValidationService
+    $errors = ValidationService::validateProduct($name, $price, $category_id);
+    
+    // Gestion de l'image avec ValidationService
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-        
-        if (in_array($file_extension, $allowed_types)) {
-            // Créer un nom de fichier unique
-            $new_filename = uniqid('product_', true) . '.' . $file_extension;
-            $upload_path = '../img/product/' . $new_filename;
-            
-            // Créer le dossier s'il n'existe pas
-            if (!is_dir('../img/product')) {
-                mkdir('../img/product', 0777, true);
-            }
-            
-            // Déplacer le fichier
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                $image = $new_filename;
-            } else {
-                $errors[] = "Erreur lors du téléchargement de l'image";
-            }
+        $imageResult = ValidationService::validateImage($_FILES['image']);
+        if (isset($imageResult['error'])) {
+            $errors[] = $imageResult['error'];
         } else {
-            $errors[] = "Format d'image non autorisé. Formats acceptés: jpg, jpeg, png, gif, webp";
+            $image = $imageResult['filename'];
         }
     }
     
-    // Validation
-    if (empty($name)) $errors[] = "Le nom du produit est obligatoire";
-    if (empty($price) || !is_numeric($price)) $errors[] = "Le prix doit être un nombre valide";
-    if (empty($category_id)) $errors[] = "La catégorie est obligatoire";
-    
     if (empty($errors)) {
-        try {
-            // Insérer le produit (avec image si disponible)
-            $stmt = $pdo->prepare("
-                INSERT INTO products (name, price, category_id, image) 
-                VALUES (?, ?, ?, ?)
-            ");
-            $stmt->execute([$name, $price, $category_id, $image]);
-            
-            $success_message = "Produit ajouté avec succès !";
-            
-        } catch (PDOException $e) {
-            $errors[] = "Erreur lors de l'ajout du produit : " . $e->getMessage();
-        }
+        $product = new Product();
+        $product->create($name, $price, $category_id, $image);
+        
+        $_SESSION['success'] = "Produit ajouté";
+        header('Location: products.php');
+        exit();
     }
 }
 
-// Récupérer les catégories
-$categories = [];
-try {
-    $stmt = $pdo->query("SELECT * FROM categories ORDER BY name");
-    $categories = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $categories = [];
-}
+$category = new Category();
+$categories = $category->getAll();
 ?>
 
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter un Produit - Admin</title>
+    <title>Ajouter Produit</title>
 </head>
 <body>
-    <h2>Ajouter un Nouveau Produit</h2>
+    <h2>Ajouter un Produit</h2>
+    
+    <a href="products.php">← Retour</a>
     
     <?php if (!empty($errors)): ?>
-        <div style="color: red; border: 1px solid red; padding: 10px; margin: 10px 0;">
+        <div style="color: red; padding: 10px; margin: 10px 0; border: 1px solid red;">
             <?php foreach ($errors as $error): ?>
-                <?php echo htmlspecialchars($error); ?><br>
+                <?= $error ?><br>
             <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-    
-    <?php if (!empty($success_message)): ?>
-        <div style="color: green; border: 1px solid green; padding: 10px; margin: 10px 0;">
-            <?php echo htmlspecialchars($success_message); ?>
         </div>
     <?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data">
-        <table border="1" cellpadding="5" cellspacing="0">
+        <table>
             <tr>
-                <td><label for="name">Nom du produit:</label></td>
-                <td><input type="text" name="name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>" required></td>
+                <td>Nom:</td>
+                <td><input type="text" name="name" required></td>
             </tr>
             <tr>
-                <td><label for="price">Prix (€):</label></td>
-                <td><input type="number" step="0.01" name="price" value="<?php echo htmlspecialchars($_POST['price'] ?? ''); ?>" required></td>
+                <td>Prix:</td>
+                <td><input type="number" step="0.01" name="price" required></td>
             </tr>
             <tr>
-                <td><label for="category_id">Catégorie:</label></td>
+                <td>Catégorie:</td>
                 <td>
                     <select name="category_id" required>
-                        <option value="">Sélectionner une catégorie</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo $category['id']; ?>"
-                                    <?php echo (isset($_POST['category_id']) && $_POST['category_id'] == $category['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </option>
+                        <option value="">Choisir...</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?= $cat['id'] ?>"><?= $cat['name'] ?></option>
                         <?php endforeach; ?>
                     </select>
                 </td>
             </tr>
             <tr>
-                <td><label for="image">Image du produit:</label></td>
-                <td>
-                    <input type="file" name="image" accept="image/*">
-                    <br><small>Formats acceptés: JPG, JPEG, PNG, GIF, WEBP</small>
-                </td>
+                <td>Image:</td>
+                <td><input type="file" name="image" accept="image/*"></td>
             </tr>
             <tr>
-                <td colspan="2" align="center">
-                    <input type="submit" value="Ajouter le produit">
-                    <a href="products.php" style="margin-left: 20px;">Retour</a>
+                <td colspan="2" style="text-align: center;">
+                    <input type="submit" value="Ajouter">
                 </td>
             </tr>
         </table>

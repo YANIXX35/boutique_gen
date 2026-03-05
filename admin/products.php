@@ -1,44 +1,72 @@
 <?php
-// Démarrer la session et vérifier si l'utilisateur est admin
 session_start();
 require_once '../config.php';
 
-// Vérifier si l'utilisateur est connecté et est admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
-    header('Location: ../signin.php');
-    exit();
-}
-
-// Vérifier si l'utilisateur est admin
-$is_admin = false;
-try {
-    $stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $user = $stmt->fetch();
-    if ($user && $user['admin'] == 1) {
-        $is_admin = true;
+/**
+ * Classe AuthService - Vérification admin centralisée
+ */
+class AuthService {
+    public static function requireAdmin() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ../signin.php');
+            exit();
+        }
+        
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT admin FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        
+        if (!$user || $user['admin'] != 1) {
+            header('Location: ../index.php');
+            exit();
+        }
     }
-} catch (PDOException $e) {
-    $is_admin = false;
 }
 
-if (!$is_admin) {
-    header('Location: ../index.php');
+/**
+ * Classe Product - Gestion des produits en POO
+ */
+class Product {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function getAllWithCategories() {
+        $stmt = $this->db->query("
+            SELECT p.*, c.name as category_name 
+            FROM products p 
+            LEFT JOIN categories c ON p.category_id = c.id 
+            ORDER BY p.id DESC
+        ");
+        return $stmt->fetchAll();
+    }
+    
+    public function delete($id) {
+        $stmt = $this->db->prepare("DELETE FROM products WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+}
+
+// Vérification admin avec la classe AuthService
+AuthService::requireAdmin();
+
+// Récupérer tous les produits avec leurs catégories (POO)
+$product = new Product();
+$products = $product->getAllWithCategories();
+
+// Gestion de la suppression
+if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
+    $productId = $_GET['delete'];
+    if ($product->delete($productId)) {
+        $_SESSION['success'] = "Produit supprimé";
+    } else {
+        $_SESSION['error'] = "Erreur lors de la suppression";
+    }
+    header('Location: products.php');
     exit();
-}
-
-// Récupérer tous les produits avec leurs catégories (adapté à votre structure)
-$products = [];
-try {
-    $stmt = $pdo->query("
-        SELECT p.*, c.name as category_name 
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.id 
-        ORDER BY p.id DESC
-    ");
-    $products = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $error = "Erreur lors de la récupération des produits";
 }
 ?>
 <!DOCTYPE html>

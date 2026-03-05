@@ -2,6 +2,60 @@
 // Inclure la configuration de la base de données
 require_once 'config.php';
 
+/**
+ * Classe User - Gestion des utilisateurs en POO
+ */
+class User {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function findByEmail($email) {
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->fetch();
+    }
+    
+    public function create($username, $email, $password, $admin = 0) {
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("INSERT INTO users (username, email, password, admin, created_at) VALUES (?, ?, ?, ?, NOW())");
+        return $stmt->execute([$username, $email, $hashed_password, $admin]);
+    }
+}
+
+/**
+ * Classe ValidationService - Validation centralisée
+ */
+class ValidationService {
+    public static function validateUser($username, $email, $password, $confirmPassword) {
+        $errors = [];
+        
+        if (empty($username) || empty($email) || empty($password)) {
+            $errors[] = "Tous les champs sont obligatoires";
+        }
+        
+        if ($password !== $confirmPassword) {
+            $errors[] = "Les mots de passe ne correspondent pas";
+        }
+        
+        if (strlen($password) < 8) {
+            $errors[] = "Le mot de passe doit contenir au moins 8 caractères";
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "L'email n'est pas valide";
+        }
+        
+        return $errors;
+    }
+    
+    public static function validateEmail($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+}
+
 // Si le formulaire est soumis
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupérer les données du formulaire
@@ -10,49 +64,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
-    // Validation
-    $errors = [];
+    // Validation avec ValidationService
+    $errors = ValidationService::validateUser($username, $email, $password, $confirm_password);
     
-    if (empty($username) || empty($email) || empty($password)) {
-        $errors[] = "Tous les champs sont obligatoires";
-    }
-    
-    if ($password !== $confirm_password) {
-        $errors[] = "Les mots de passe ne correspondent pas";
-    }
-    
-    if (strlen($password) < 8) {
-        $errors[] = "Le mot de passe doit contenir au moins 8 caractères";
-    }
-    
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "L'email n'est pas valide";
-    }
-    
-    // Vérifier si l'email existe déjà
+    // Vérifier si l'email existe déjà avec POO
     if (empty($errors)) {
-        try {
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-            $stmt->execute([$email]);
-            if ($stmt->fetch()) {
-                $errors[] = "Cet email est déjà utilisé";
-            }
-        } catch (PDOException $e) {
-            $errors[] = "Erreur lors de la vérification de l'email";
+        $userModel = new User();
+        if ($userModel->findByEmail($email)) {
+            $errors[] = "Cet email est déjà utilisé";
         }
     }
     
-    // Si pas d'erreurs, insérer l'utilisateur dans la base de données
+    // Si pas d'erreurs, insérer l'utilisateur dans la base de données avec POO
     if (empty($errors)) {
-        try {
-            // Hasher le mot de passe
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            
-            // Insérer l'utilisateur dans la base de données
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, admin, created_at) VALUES (?, ?, ?, 0, NOW())");
-            $stmt->execute([$username, $email, $hashed_password]);
-            
+        $userModel = new User();
+        if ($userModel->create($username, $email, $password)) {
             $success_message = "Compte créé avec succès ! Vous pouvez maintenant vous connecter.";
+        } else {
+            $errors[] = "Erreur lors de la création du compte";
             
         } catch (PDOException $e) {
             $errors[] = "Erreur lors de l'inscription : " . $e->getMessage();
