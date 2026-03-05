@@ -52,42 +52,29 @@ class Category {
     }
 }
 
-// Vérification admin avec la classe AuthService
 AuthService::requireAdmin();
 
-// Vérifier si l'ID de la catégorie est fourni
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    $_SESSION['error_message'] = "ID de catégorie invalide";
-    header('Location: categories.php');
-    exit();
-}
-
-$category_id = $_GET['id'];
+$category_id = $_GET['id'] ?? 0;
 $categoryModel = new Category();
 
-// Vérifier si la catégorie existe avec POO
 $category = $categoryModel->find($category_id);
 
 if (!$category) {
-    $_SESSION['error_message'] = "Catégorie non trouvée";
+    $_SESSION['error'] = "Catégorie non trouvée";
     header('Location: categories.php');
     exit();
 }
 
-// Vérifier si des produits sont associés à cette catégorie avec POO
 $productCount = $categoryModel->getProductCount($category_id);
 
 if ($productCount > 0) {
-    $_SESSION['error_message'] = "Impossible de supprimer cette catégorie : " . $productCount . " produit(s) y sont associés. Veuillez d'abord déplacer ou supprimer ces produits.";
-    header('Location: categories.php');
-    exit();
-}
-
-// Supprimer la catégorie avec POO
-if ($categoryModel->delete($category_id)) {
-    $_SESSION['success_message'] = "Catégorie supprimée avec succès !";
+    $_SESSION['error'] = "Impossible de supprimer : $productCount produit(s) lié(s)";
 } else {
-    $_SESSION['error_message'] = "Erreur lors de la suppression de la catégorie";
+    if ($categoryModel->delete($category_id)) {
+        $_SESSION['success'] = "Catégorie supprimée";
+    } else {
+        $_SESSION['error'] = "Erreur lors de la suppression";
+    }
 }
 
 header('Location: categories.php');

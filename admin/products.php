@@ -2,9 +2,6 @@
 session_start();
 require_once '../config.php';
 
-/**
- * Classe AuthService - Vérification admin centralisée
- */
 class AuthService {
     public static function requireAdmin() {
         if (!isset($_SESSION['user_id'])) {
@@ -24,9 +21,6 @@ class AuthService {
     }
 }
 
-/**
- * Classe Product - Gestion des produits en POO
- */
 class Product {
     private $db;
     
@@ -50,33 +44,27 @@ class Product {
     }
 }
 
-// Vérification admin avec la classe AuthService
 AuthService::requireAdmin();
 
-// Récupérer tous les produits avec leurs catégories (POO)
 $product = new Product();
 $products = $product->getAllWithCategories();
 
-// Gestion de la suppression
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    $productId = $_GET['delete'];
-    if ($product->delete($productId)) {
+if (isset($_GET['delete_id'])) {
+    $delete_id = $_GET['delete_id'];
+    if ($product->delete($delete_id)) {
         $_SESSION['success'] = "Produit supprimé";
-    } else {
-        $_SESSION['error'] = "Erreur lors de la suppression";
+        header('Location: products.php');
+        exit();
     }
-    header('Location: products.php');
-    exit();
 }
 ?>
+
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Produits - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Gestion Produits</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {

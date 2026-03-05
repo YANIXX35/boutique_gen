@@ -2,19 +2,44 @@
 session_start();
 require_once '../config.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../signin.php');
-    exit();
+class AuthService {
+    public static function requireAdmin() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ../signin.php');
+            exit();
+        }
+        
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT admin FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        
+        if (!$user || $user['admin'] != 1) {
+            header('Location: ../index.php');
+            exit();
+        }
+    }
 }
 
-$stmt = $pdo->prepare("SELECT admin FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user = $stmt->fetch();
-
-if (!$user || $user['admin'] != 1) {
-    header('Location: ../index.php');
-    exit();
+class Category {
+    private $db;
+    
+    public function __construct() {
+        $this->db = Database::getInstance()->getConnection();
+    }
+    
+    public function create($name, $parentId = null) {
+        $stmt = $this->db->prepare("INSERT INTO categories (name, parent_id) VALUES (?, ?)");
+        return $stmt->execute([$name, $parentId]);
+    }
+    
+    public function getAll() {
+        $stmt = $this->db->query("SELECT * FROM categories ORDER BY name");
+        return $stmt->fetchAll();
+    }
 }
+
+AuthService::requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';
@@ -24,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($name)) $errors[] = "Nom obligatoire";
     
     if (empty($errors)) {
-        $stmt = $pdo->prepare("INSERT INTO categories (name, parent_id) VALUES (?, ?)");
-        $stmt->execute([$name, $parent_id]);
+        $category = new Category();
+        $category->create($name, $parent_id);
         
         $_SESSION['success'] = "Catégorie ajoutée";
         header('Location: categories.php');
@@ -33,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
+$category = new Category();
+$categories = $category->getAll();
 ?>
 
 <!DOCTYPE html>

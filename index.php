@@ -9,14 +9,14 @@ class Product {
     }
     
     public function getFeatured($limit = 6) {
-        $stmt = $this->db->prepare("
+        $limit = (int)$limit;
+        $stmt = $this->db->query("
             SELECT p.*, c.name as cat_name 
             FROM products p 
             LEFT JOIN categories c ON p.category_id = c.id 
             ORDER BY p.id DESC 
-            LIMIT ?
+            LIMIT $limit
         ");
-        $stmt->execute([$limit]);
         return $stmt->fetchAll();
     }
 }

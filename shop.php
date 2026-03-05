@@ -1,9 +1,6 @@
 <?php
 require_once 'config.php';
 
-/**
- * Classe Product - Gestion des produits en POO
- */
 class Product {
     private $db;
     
@@ -34,9 +31,6 @@ class Product {
     }
 }
 
-/**
- * Classe Category - Gestion des catégories en POO
- */
 class Category {
     private $db;
     
@@ -50,51 +44,38 @@ class Category {
     }
 }
 
-// Récupérer tous les produits avec leurs catégories en POO
 $productModel = new Product();
 $products = $productModel->getAllWithCategories();
 
-// Récupérer les catégories pour le filtre
 $categoryModel = new Category();
 $categories = $categoryModel->getAll();
 
-// Filtrage par catégorie si demandé
-if (isset($_GET['category']) && is_numeric($_GET['category'])) {
-    $products = $productModel->getByCategory($_GET['category']);
+$category_filter = $_GET['category'] ?? '';
+if ($category_filter && is_numeric($category_filter)) {
+    $products = $productModel->getByCategory($category_filter);
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Male Fashion Shop">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop | Male Fashion</title>
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-
-    <!-- CSS uniquement -->
+    <title>Male Fashion | Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/elegant-icons.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-
-    <!-- Header -->
     <header class="header">
         <div class="header__top">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-6">
-                        <div class="header__top__left">
-                            <p>Free shipping, 30-day return or refund guarantee.</p>
-                        </div>
+                        <p>Livraison gratuite, retour 30 jours</p>
                     </div>
-                    <div class="col-lg-6 text-right">
+                    <div class="col-lg-6">
                         <div class="header__top__links">
                             <a href="signin.php">Sign in</a>
                             <a href="#">FAQs</a>
@@ -103,15 +84,13 @@ if (isset($_GET['category']) && is_numeric($_GET['category'])) {
                 </div>
             </div>
         </div>
-
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row">
                 <div class="col-lg-3">
                     <div class="header__logo">
                         <a href="index.php"><img src="img/logo.png" alt=""></a>
                     </div>
                 </div>
-
                 <div class="col-lg-6">
                     <nav class="header__menu">
                         <ul>
@@ -122,8 +101,7 @@ if (isset($_GET['category']) && is_numeric($_GET['category'])) {
                         </ul>
                     </nav>
                 </div>
-
-                <div class="col-lg-3 text-right">
+                <div class="col-lg-3">
                     <div class="header__nav__option">
                         <a href="#"><img src="img/icon/search.png" alt=""></a>
                         <a href="#"><img src="img/icon/heart.png" alt=""></a>
@@ -135,127 +113,76 @@ if (isset($_GET['category']) && is_numeric($_GET['category'])) {
         </div>
     </header>
 
-    <!-- Breadcrumb -->
     <section class="breadcrumb-option">
-        <div class="container">
-            <div class="breadcrumb__text">
-                <h4>Shop</h4>
-                <div class="breadcrumb__links">
-                    <a href="index.php">Home</a>
-                    <span>Shop</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Shop Section -->
-    <section class="shop spad">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="section-title">
-                        <span>Nos Produits</span>
-                        <h2>Boutique</h2>
+                    <div class="breadcrumb__text">
+                        <h4>Shop</h4>
+                        <div class="breadcrumb__links">
+                            <a href="index.php">Home</a>
+                            <span>Shop</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <?php if (empty($products)): ?>
-                <div class="row">
-                    <div class="col-lg-12 text-center">
-                        <p>Aucun produit trouvé pour le moment.</p>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="row">
-                    <?php foreach ($products as $product): ?>
-                        <div class="col-lg-4 col-md-6">
-                            <div class="product__item">
-                                <div class="product__item__pic">
-                                    <?php if (!empty($product['image'])): ?>
-                                        <img src="img/product/<?php echo htmlspecialchars($product['image']); ?>" 
-                                             alt="<?php echo htmlspecialchars($product['name']); ?>">
-                                    <?php else: ?>
-                                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 300px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                            <?php echo substr(htmlspecialchars($product['name']), 0, 2); ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="product__item__text">
-                                    <h6><?php echo htmlspecialchars($product['name']); ?></h6>
-                                    <a href="#" class="add-cart">+ Ajouter au panier</a>
-                                    <div class="rating">
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star-half-o"></i>
-                                    </div>
-                                    <h5>€<?php echo number_format($product['price'], 2); ?></h5>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
+    <section class="shop spad">
         <div class="container">
             <div class="row">
-
                 <div class="col-lg-3">
-                    <div class="footer__about">
-                        <div class="footer__logo">
-                            <a href="#"><img src="img/footer-logo.png" alt=""></a>
+                    <div class="shop__sidebar">
+                        <div class="shop__sidebar__categories">
+                            <h4>Catégories</h4>
+                            <ul class="shop__sidebar__categories__list">
+                                <li><a href="shop.php">Tous les produits</a></li>
+                                <?php foreach ($categories as $category): ?>
+                                    <li>
+                                        <a href="?category=<?= $category['id'] ?>">
+                                            <?= htmlspecialchars($category['name']) ?>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
-                        <p>The customer is at the heart of our unique business model.</p>
-                        <img src="img/payment.png" alt="">
                     </div>
                 </div>
-
-                <div class="col-lg-3">
-                    <div class="footer__widget">
-                        <h6>Shopping</h6>
-                        <ul>
-                            <li><a href="#">Clothing Store</a></li>
-                            <li><a href="#">Shoes</a></li>
-                            <li><a href="#">Accessories</a></li>
-                        </ul>
+                <div class="col-lg-9">
+                    <div class="row">
+                        <?php if (empty($products)): ?>
+                            <div class="col-lg-12 text-center">
+                                <h4>Aucun produit trouvé</h4>
+                                <p>Essayez une autre catégorie.</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($products as $product): ?>
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="product__item">
+                                        <div class="product__item__pic set-bg" 
+                                             data-setbg="<?= $product['image'] ? 'img/product/' . htmlspecialchars($product['image']) : 'img/product/default.jpg' ?>">
+                                            <ul class="product__item__pic__hover">
+                                                <li><a href="#"><i class="fa fa-heart"></i></a></li>
+                                                <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="product__item__text">
+                                            <h6><?= htmlspecialchars($product['name']) ?></h6>
+                                            <h5>€<?= number_format($product['price'], 2) ?></h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
-
-                <div class="col-lg-3">
-                    <div class="footer__widget">
-                        <h6>Support</h6>
-                        <ul>
-                            <li><a href="#">Contact Us</a></li>
-                            <li><a href="#">Delivery</a></li>
-                            <li><a href="#">Returns</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="col-lg-3">
-                    <div class="footer__widget">
-                        <h6>Newsletter</h6>
-                        <p>Subscribe to get updates.</p>
-                        <form method="POST" action="#">
-                            <input type="email" placeholder="Your email">
-                            <button type="submit"><span class="icon_mail_alt"></span></button>
-                        </form>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="text-center mt-4">
-                <p>Copyright © 2026 - All rights reserved</p>
             </div>
         </div>
-    </footer>
+    </section>
 
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

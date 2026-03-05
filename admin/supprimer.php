@@ -46,39 +46,24 @@ class Product {
     }
 }
 
-// Vérification admin avec la classe AuthService
 AuthService::requireAdmin();
 
-// Traitement de la suppression
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_id = $_POST['product_id'] ?? 0;
-    
+
     if ($product_id) {
         $productModel = new Product();
         
-        // Vérifier si le produit existe avec POO
         $product = $productModel->find($product_id);
         
-        if ($product) {
-            // Supprimer le produit avec POO
-            if ($productModel->delete($product_id)) {
-                $_SESSION['success_message'] = "Produit '" . htmlspecialchars($product['name']) . "' supprimé avec succès !";
-            } else {
-                $_SESSION['error_message'] = "Erreur lors de la suppression.";
-            }
+        if ($product && $productModel->delete($product_id)) {
+            $_SESSION['success'] = "Produit supprimé";
         } else {
-            $_SESSION['error_message'] = "Produit introuvable.";
+            $_SESSION['error'] = "Erreur lors de la suppression";
         }
-    } else {
-        $_SESSION['error_message'] = "ID du produit non valide.";
     }
-    
-    // Rediriger vers la liste des produits
-    header('Location: products.php');
-    exit();
 }
 
-// Si accès direct sans POST, rediriger
 header('Location: products.php');
 exit();
 ?>

@@ -2,9 +2,6 @@
 session_start();
 require_once '../config.php';
 
-/**
- * Classe AuthService - Vérification admin centralisée
- */
 class AuthService {
     public static function requireAdmin() {
         if (!isset($_SESSION['user_id'])) {
@@ -24,9 +21,6 @@ class AuthService {
     }
 }
 
-/**
- * Classe Category - Gestion des catégories en POO
- */
 class Category {
     private $db;
     
@@ -45,9 +39,6 @@ class Category {
     }
 }
 
-/**
- * Classe ValidationService - Validation centralisée
- */
 class ValidationService {
     public static function validateCategory($name) {
         $errors = [];
@@ -56,7 +47,6 @@ class ValidationService {
     }
 }
 
-// Vérification admin avec la classe AuthService
 AuthService::requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -64,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parent_id = $_POST['parent_id'] ?? null;
     $errors = [];
     
-    // Validation avec ValidationService
     $errors = ValidationService::validateCategory($name);
     
     if (empty($errors)) {
