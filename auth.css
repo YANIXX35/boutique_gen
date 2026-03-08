@@ -1,0 +1,132 @@
+/* ============================================
+   auth.css — Styles pour la connexion & l'inscription
+   Utilisé par : signin.php, signup.php
+   ============================================ */
+
+/* --- Reset de base --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Le padding ne dépasse pas la taille définie */
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f0f2f5; /* Fond gris clair */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Centrer verticalement dans toute la fenêtre */
+}
+
+/* --- Le grand conteneur centré --- */
+.auth-conteneur {
+    width: 100%;
+    max-width: 420px; /* Largeur maximale de la boîte */
+    padding: 20px;
+}
+
+/* --- La boîte blanche principale --- */
+.auth-boite {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Ombre légère autour */
+}
+
+/* --- Le titre de la page --- */
+.auth-boite h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #1a1a2e; /* Bleu très foncé */
+    margin-bottom: 28px;
+}
+
+/* --- Un champ de formulaire (label + input) --- */
+.champ-formulaire {
+    margin-bottom: 18px;
+}
+
+/* --- Le label au-dessus de l'input --- */
+.champ-formulaire label {
+    display: block; /* Le label prend toute la largeur */
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+}
+
+/* --- Les champs de saisie --- */
+.champ-formulaire input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    transition: border-color 0.2s; /* Animation douce au focus */
+}
+
+/* Style quand l'utilisateur clique sur un champ */
+.champ-formulaire input:focus {
+    outline: none;
+    border-color: #4f46e5; /* Violet au focus */
+}
+
+/* --- Le bouton de soumission --- */
+.btn-soumettre {
+    width: 100%;
+    padding: 14px;
+    background-color: #4f46e5; /* Violet principal */
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-soumettre:hover {
+    background-color: #4338ca; /* Légèrement plus foncé au survol */
+}
+
+/* --- Messages d'erreur (rouge) et de succès (vert) --- */
+.message-erreur {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.message-succes {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+/* --- Le lien en bas (ex: "Pas encore de compte ?") --- */
+.lien-bas {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.lien-bas a {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.lien-bas a:hover {
+    text-decoration: underline;
+}

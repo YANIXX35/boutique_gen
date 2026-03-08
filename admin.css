@@ -1,0 +1,243 @@
+/* ============================================
+   admin.css — Styles du panneau d'administration
+   Utilisé par : admin.php, ajouter_produit.php,
+                 modifier_produit.php, ajouter_categorie.php
+   ============================================ */
+
+/* --- Reset de base --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f5f6fa;
+    color: #333;
+}
+
+/* ==========================================
+   BARRE D'EN-TÊTE DE L'ADMINISTRATION
+   ========================================== */
+.admin-header {
+    background-color: #1a1a2e; /* Fond sombre */
+    color: #ffffff;
+    padding: 16px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-header h1 {
+    font-size: 1.4rem;
+}
+
+.admin-header a {
+    color: #a5b4fc; /* Violet clair */
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.admin-header a:hover {
+    color: #ffffff;
+}
+
+/* ==========================================
+   CONTENEUR PRINCIPAL DU PANNEAU ADMIN
+   ========================================== */
+.admin-conteneur {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* ==========================================
+   SECTIONS (Produits, Utilisateurs...)
+   ========================================== */
+.admin-section {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 28px;
+    margin-bottom: 36px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07); /* Ombre légère */
+}
+
+.admin-section h2 {
+    font-size: 1.3rem;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e8e8f0; /* Séparateur sous le titre */
+}
+
+/* ==========================================
+   TABLEAU DE DONNÉES (produits, utilisateurs)
+   ========================================== */
+.admin-tableau {
+    width: 100%;
+    border-collapse: collapse; /* Fusionne les bordures */
+    margin-top: 16px;
+}
+
+/* En-tête du tableau */
+.admin-tableau th {
+    background-color: #f0f0f8;
+    color: #444;
+    font-weight: 700;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+
+/* Cellules du tableau */
+.admin-tableau td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee; /* Ligne fine entre chaque rangée */
+    vertical-align: middle;
+}
+
+/* Couleur alternée pour les lignes (facilite la lecture) */
+.admin-tableau tr:nth-child(even) td {
+    background-color: #f9f9fd;
+}
+
+/* Survol d'une ligne */
+.admin-tableau tr:hover td {
+    background-color: #eef0ff;
+}
+
+/* Miniature d'image dans le tableau */
+.admin-tableau img {
+    width: 55px;
+    height: 55px;
+    object-fit: cover; /* Recadre l'image sans la déformer */
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+/* ==========================================
+   BOUTONS D'ACTION
+   ========================================== */
+
+/* Bouton "Ajouter" vert */
+.btn-ajouter {
+    display: inline-block;
+    background-color: #16a34a; /* Vert */
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-ajouter:hover {
+    background-color: #15803d;
+}
+
+/* Lien "Modifier" bleu */
+.lien-modifier {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.lien-modifier:hover {
+    text-decoration: underline;
+}
+
+/* Lien "Supprimer" rouge */
+.lien-supprimer {
+    color: #dc2626;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.lien-supprimer:hover {
+    text-decoration: underline;
+}
+
+/* Badge "Administrateur" vs "Membre" */
+.badge-admin {
+    background-color: #fef3c7; /* Jaune clair */
+    color: #92400e;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-membre {
+    background-color: #e0f2fe; /* Bleu clair */
+    color: #0369a1;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* ==========================================
+   FORMULAIRES ADMIN (ajouter/modifier produit)
+   ========================================== */
+.formulaire-admin {
+    max-width: 600px;
+}
+
+/* Un groupe label + input */
+.champ-formulaire {
+    margin-bottom: 20px;
+}
+
+.champ-formulaire label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Tous les inputs, textarea, select du formulaire admin */
+.champ-formulaire input,
+.champ-formulaire textarea,
+.champ-formulaire select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+.champ-formulaire input:focus,
+.champ-formulaire textarea:focus,
+.champ-formulaire select:focus {
+    outline: none;
+    border-color: #4f46e5;
+}
+
+.champ-formulaire textarea {
+    height: 100px;
+    resize: vertical; /* L'utilisateur peut redimensionner verticalement */
+}
+
+/* Bouton de soumission du formulaire admin */
+.btn-soumettre--large {
+    padding: 13px 28px;
+    background-color: #4f46e5;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-soumettre--large:hover {
+    background-color: #4338ca;
+}
