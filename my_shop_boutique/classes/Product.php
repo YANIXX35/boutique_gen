@@ -16,9 +16,21 @@
         }
 
         public function creer_Produit($name, $description, $price, $category_id, $image) {
-            $requete = "INSERT INTO " . $this->nom_Table . " (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)";
-            $stmt    = $this->connexion->prepare($requete);
-            return $stmt->execute([$name, $description, $price, $category_id, $image]);
+            // Vérifier si la colonne description existe
+            $check_column = $this->connexion->prepare("SHOW COLUMNS FROM products LIKE 'description'");
+            $check_column->execute();
+            
+            if ($check_column->rowCount() > 0) {
+                // La colonne description existe, on l'inclut
+                $requete = "INSERT INTO " . $this->nom_Table . " (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)";
+                $stmt = $this->connexion->prepare($requete);
+                return $stmt->execute([$name, $description, $price, $category_id, $image]);
+            } else {
+                // La colonne description n'existe pas, on l'ignore
+                $requete = "INSERT INTO " . $this->nom_Table . " (name, price, category_id, image) VALUES (?, ?, ?, ?)";
+                $stmt = $this->connexion->prepare($requete);
+                return $stmt->execute([$name, $price, $category_id, $image]);
+            }
         }
 
         public function delete($id) {

@@ -64,23 +64,9 @@
             <i class="bi bi-bag-heart-fill"></i> Y.E.F Shop
         </a>
         <nav class="site-nav">
-            <?php if (isset($_SESSION['user_id'])) { ?>
-                <span class="nav-greeting">
-                    <i class="bi bi-person-circle"></i>
-                    <?php echo htmlspecialchars($_SESSION['username']); ?>
-                </span>
-                <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) { ?>
-                    <a href="admin.php" class="nav-btn nav-btn-outline">
-                        <i class="bi bi-speedometer2"></i> Admin
-                    </a>
-                <?php } ?>
-                <a href="logout.php" class="nav-btn nav-btn-ghost">
-                    <i class="bi bi-box-arrow-right"></i> Déconnexion
-                </a>
-            <?php } else { ?>
-                <a href="signin.php" class="nav-btn nav-btn-ghost">Connexion</a>
-                <a href="signup.php" class="nav-btn nav-btn-solid">Inscription</a>
-            <?php } ?>
+            <a href="admin.php" class="nav-btn nav-btn-outline">
+                <i class="bi bi-speedometer2"></i> Admin
+            </a>
         </nav>
     </div>
 </header>
@@ -206,23 +192,27 @@
                 <div class="product-card">
                     <div class="product-img">
                         <?php $img = !empty($p['image']) ? $p['image'] : 'default.png'; ?>
-                        <img src="ressources/<?php echo htmlspecialchars($img); ?>"
-                             alt="<?php echo htmlspecialchars($p['name'] ?? 'Produit'); ?>">
+                        <a href="produit.php?id=<?php echo $p['id']; ?>">
+                            <img src="ressources/<?php echo htmlspecialchars($img); ?>"
+                                 alt="<?php echo htmlspecialchars($p['name'] ?? 'Produit'); ?>">
+                        </a>
                     </div>
                     <div class="product-info">
                         <h3>
-                            <?php
-                            if (!empty($p['name'])) {
-                                echo htmlspecialchars($p['name']);
-                            } else {
-                                echo 'Sans nom';
-                            }
-                            ?>
+                            <a href="produit.php?id=<?php echo $p['id']; ?>" style="color: inherit; text-decoration: none;">
+                                <?php
+                                if (!empty($p['name'])) {
+                                    echo htmlspecialchars($p['name']);
+                                } else {
+                                    echo 'Sans nom';
+                                }
+                                ?>
+                            </a>
                         </h3>
                         <p class="product-desc">
                             <?php
                             if (!empty($p['description'])) {
-                                echo htmlspecialchars($p['description']);
+                                echo htmlspecialchars(substr($p['description'], 0, 80)) . '...';
                             } else {
                                 echo '';
                             }
@@ -269,8 +259,8 @@
             <h4>Navigation</h4>
             <ul>
                 <li><a href="index.php">Accueil</a></li>
-                <li><a href="#">Nos Catégories</a></li>
-                <li><a href="#">Promotions</a></li>
+                <li><a href="index.php">Nos Produits</a></li>
+                <li><a href="admin.php">Admin</a></li>
             </ul>
         </div>
 

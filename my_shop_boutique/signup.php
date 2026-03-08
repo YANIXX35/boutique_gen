@@ -1,36 +1,35 @@
 <?php
-    session_start();
-    require_once 'classes/Database.php';
-    require_once 'classes/User.php';
+session_start();
+require_once 'classes/Database.php';
+require_once 'classes/User.php';
 
-    $base_donnees = new Database();
-    $base_D       = $base_donnees->recupConnexion();
-    $utilisateur  = new User($base_D);
+$base_donnees = new Database();
+$base_D = $base_donnees->recupConnexion();
+$user = new User($base_D);
 
-    $message = "";
+$error = '';
+$success = '';
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $username = trim($_POST['username'] ?? '');
-        $email    = trim($_POST['email']    ?? '');
-        $password = trim($_POST['password'] ?? '');
-
-        if (empty($username) || empty($email) || empty($password)) {
-            $message = "Veuillez remplir tous les champs.";
-        } elseif (strlen($username) < 3) {
-            $message = "Le nom d'utilisateur doit contenir au moins 3 caractères.";
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $message = "L'adresse email n'est pas valide.";
-        } elseif (strlen($password) < 6) {
-            $message = "Le mot de passe doit contenir au moins 6 caractères.";
+if ($_POST) {
+    $username = $_POST['username'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+    
+    if ($password !== $confirm_password) {
+        $error = 'Les mots de passe ne correspondent pas';
+    } elseif (strlen($password) < 6) {
+        $error = 'Le mot de passe doit contenir au moins 6 caractères';
+    } else {
+        $result = $user->creerCompte($username, $email, $password);
+        
+        if ($result === true) {
+            $success = 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.';
         } else {
-            $result = $utilisateur->creerCompte($username, $email, $password);
-            if ($result === true) {
-                header("Location: signin.php?success=1");
-                exit;
-            }
-            $message = $result;
+            $error = $result;
         }
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -38,72 +37,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription — Y.E.F Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-page">
-    <div class="auth-card">
-
-        <div class="brand-logo">
-            <i class="bi bi-bag-heart-fill"></i>
-            <span class="brand-title">Y.E.F Shop</span>
+<body class="form-page">
+    <div class="form-container">
+        <div class="form-header">
+            <a href="index.php" class="site-logo">
+                <i class="bi bi-bag-heart-fill"></i> Y.E.F Shop
+            </a>
+            <h2>Inscription</h2>
+            <p>Créez votre compte pour commencer</p>
         </div>
-        <div class="brand-sub">Créer un nouveau compte</div>
 
-        <?php if ($message): ?>
-            <div class="alerte-erreur">
-                <i class="bi bi-exclamation-circle"></i>
-                <?php echo htmlspecialchars($message); ?>
+        <?php if ($error): ?>
+            <div class="alert-error">
+                <i class="bi bi-exclamation-triangle"></i>
+                <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
 
-        <form method="post" novalidate>
-            <div class="mb-3">
-                <label class="form-label">Nom d'utilisateur</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                    <input type="text" name="username" class="form-control"
-                           placeholder="Entrez votre nom"
-                           value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>"
-                           required minlength="3">
-                </div>
-                <div class="form-text">Minimum 3 caractères</div>
+        <?php if ($success): ?>
+            <div class="alert-success">
+                <i class="bi bi-check-circle"></i>
+                <?php echo htmlspecialchars($success); ?>
             </div>
+        <?php endif; ?>
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                    <input type="email" name="email" class="form-control"
-                           placeholder="Entrez votre email"
-                           value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
-                           required>
-                </div>
+        <form method="post" class="form-boite">
+            <div class="form-group">
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="username" placeholder="Choisissez un nom" required 
+                       value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Mot de passe</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" name="password" class="form-control"
-                           placeholder="Entrez votre mot de passe   " required minlength="6">
-                </div>
-                <div class="form-text">Minimum 6 caractères</div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="votre@email.com" required 
+                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
             </div>
-
-            <button type="submit" class="btn-inscription">
-                Créer mon compte <i class="bi bi-arrow-right"></i>
+            
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" name="password" placeholder="Min 6 caractères" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Confirmer le mot de passe</label>
+                <input type="password" name="confirm_password" placeholder="Répétez le mot de passe" required>
+            </div>
+            
+            <button type="submit" class="btn-submit">
+                <i class="bi bi-person-plus"></i> Créer mon compte
             </button>
         </form>
 
-        <hr class="divider">
-
-        <div class="lien-secondaire">
-            Déjà un compte ? <a href="signin.php">Se connecter</a>
-        </div>
-        <div class="lien-secondaire mt-2">
-            <a href="index.php"><i class="bi bi-house me-1"></i>Retour à la boutique</a>
+        <div class="form-footer">
+            <p>Déjà un compte ? <a href="signin.php">Se connecter</a></p>
+            <a href="index.php" class="back-link">
+                <i class="bi bi-arrow-left"></i> Retour à l'accueil
+            </a>
         </div>
     </div>
 </body>
