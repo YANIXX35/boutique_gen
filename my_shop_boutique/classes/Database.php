@@ -4,7 +4,7 @@
         private $host = "localhost";
         private $db_name = "my_shop";
         private $username = "root";
-        private $password = "Emmanuel2002.Z";
+        private $password = "";
         private $connexion;
 
         public function recupConnexion(){
