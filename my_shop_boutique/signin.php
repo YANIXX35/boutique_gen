@@ -13,7 +13,6 @@
         $email    = trim($_POST['email']    ?? '');
         $password = trim($_POST['password'] ?? '');
 
-        // Validation des champs vides
         if (empty($email) || empty($password)) {
             $error = "Veuillez remplir tous les champs.";
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -70,7 +69,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                     <input type="email" name="email" class="form-control"
-                           placeholder="votre@email.com"
+                           placeholder="Entrez votre email"
                            value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
                            required>
                 </div>
@@ -81,7 +80,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
                     <input type="password" name="password" class="form-control"
-                           placeholder="••••••••" required>
+                           placeholder="Entrez votre mot de passe" required>
                 </div>
             </div>
 

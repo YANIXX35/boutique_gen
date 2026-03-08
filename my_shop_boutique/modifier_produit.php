@@ -4,7 +4,6 @@ require_once 'classes/Database.php';
 require_once 'classes/Product.php';
 require_once 'classes/Category.php';
 
-// 1. SÉCURITÉ : Toujours vérifier si c'est l'admin
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
     header("Location: index.php");
     exit();
@@ -15,7 +14,6 @@ $base_D          = $base_donnees->recupConnexion();
 $categorie       = new Category($base_D);
 $listeCategories = $categorie->lire_Categorie()->fetchAll(PDO::FETCH_ASSOC);
 
-// 2. RÉCUPÉRATION : On va chercher les données actuelles du produit
 if (isset($_GET['id'])) {
     $id      = $_GET['id'];
     $requete = "SELECT * FROM products WHERE id = ?";
@@ -28,7 +26,6 @@ if (isset($_GET['id'])) {
     }
 }
 
-// 3. MISE À JOUR : Si l'utilisateur a cliqué sur le bouton "Enregistrer"
 if ($_POST) {
     $monImage = $produit['image'];
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {

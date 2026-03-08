@@ -14,7 +14,6 @@
         $email    = trim($_POST['email']    ?? '');
         $password = trim($_POST['password'] ?? '');
 
-        // Validation des champs vides
         if (empty($username) || empty($email) || empty($password)) {
             $message = "Veuillez remplir tous les champs.";
         } elseif (strlen($username) < 3) {
@@ -65,7 +64,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person"></i></span>
                     <input type="text" name="username" class="form-control"
-                           placeholder="EmmanuelAnegbre"
+                           placeholder="Entrez votre nom"
                            value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>"
                            required minlength="3">
                 </div>
@@ -77,7 +76,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                     <input type="email" name="email" class="form-control"
-                           placeholder="votre@email.com"
+                           placeholder="Entrez votre email"
                            value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
                            required>
                 </div>
@@ -88,7 +87,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
                     <input type="password" name="password" class="form-control"
-                           placeholder="••••••••" required minlength="6">
+                           placeholder="Entrez votre mot de passe   " required minlength="6">
                 </div>
                 <div class="form-text">Minimum 6 caractères</div>
             </div>

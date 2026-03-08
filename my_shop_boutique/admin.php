@@ -5,13 +5,11 @@
     require_once 'classes/Product.php';
     require_once 'classes/Category.php';
 
-    // 1. BARRIÈRE DE SÉCURITÉ
     if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
         header("Location: index.php");
         exit();
     }
 
-    // 2. CONNEXION BASE DE DONNÉES
     $base_donnees = new Database();
     $base_D       = $base_donnees->recupConnexion();
 
@@ -19,7 +17,6 @@
     $utilisateur = new User($base_D);
     $categorie   = new Category($base_D);
 
-    // 3. ACTIONS RAPIDES
     if (isset($_GET['supprimer_produit'])) {
         $produit->delete($_GET['supprimer_produit']);
         header("Location: admin.php?section=produits");
@@ -32,10 +29,8 @@
         exit();
     }
 
-    // 4. SECTION ACTIVE
     $section = $_GET['section'] ?? 'dashboard';
 
-    // 5. DONNÉES
     $stmtProduits     = $produit->lire_Produit();
     $stmtUtilisateurs = $utilisateur->lire_Tout();
     $stmtCategories   = $categorie->lire_Categorie();
@@ -51,19 +46,19 @@
     // ── PAGINATION ──
     $parPage = 8;
 
-    // Produits
+    // Pour les produits
     $pageProduits    = max(1, intval($_GET['page_produits'] ?? 1));
     $totalPagesProd  = max(1, ceil($nbProduits / $parPage));
     $pageProduits    = min($pageProduits, $totalPagesProd);
     $produitsPagines = array_slice($listeProduits, ($pageProduits - 1) * $parPage, $parPage);
 
-    // Utilisateurs
+    // Pour les utilisateurs
     $pageUsers       = max(1, intval($_GET['page_users'] ?? 1));
     $totalPagesUsers = max(1, ceil($nbUtilisateurs / $parPage));
     $pageUsers       = min($pageUsers, $totalPagesUsers);
     $usersPagines    = array_slice($listeUtilisateurs, ($pageUsers - 1) * $parPage, $parPage);
 
-    // Catégories
+    // Pour les catégories
     $pageCats       = max(1, intval($_GET['page_cats'] ?? 1));
     $totalPagesCats = max(1, ceil($nbCategories / $parPage));
     $pageCats       = min($pageCats, $totalPagesCats);
@@ -81,7 +76,7 @@
 </head>
 <body class="admin-body">
 
-<!-- ══════════════ SIDEBAR ══════════════ -->
+<!-- BARRE LATERALE -->
 <aside class="barre-laterale">
     <div class="marque-barre">
         <span class="nom-marque">Y.E.F Shop</span>
@@ -116,10 +111,9 @@
     </a>
 </aside>
 
-<!-- ══════════════ CONTENU PRINCIPAL ══════════════ -->
+
 <div class="contenu-principal">
 
-    <!-- TOPBAR -->
     <header class="barre-haut">
         <h1 class="titre-page">
             <?php
@@ -138,9 +132,7 @@
         </div>
     </header>
 
-    <!-- ══════════════════════════════
-         DASHBOARD
-    ══════════════════════════════ -->
+<!-- TABLEAU DE BORD -->
     <?php if ($section === 'dashboard') { ?>
 
     <div class="contenu">
@@ -208,9 +200,7 @@
 
     </div>
 
-    <!-- ══════════════════════════════
-         PRODUITS
-    ══════════════════════════════ -->
+    <!-- PRODUITS -->
     <?php } elseif ($section === 'produits') { ?>
 
     <div class="contenu">
@@ -315,9 +305,7 @@
 
     </div>
 
-    <!-- ══════════════════════════════
-         UTILISATEURS
-    ══════════════════════════════ -->
+  <!-- UTILISATEURS -->
     <?php } elseif ($section === 'utilisateurs') { ?>
 
     <div class="contenu">
@@ -415,9 +403,7 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════════
-         CATÉGORIES
-    ══════════════════════════════ -->
+   <!-- CATEGORIES -->
     <?php } elseif ($section === 'categories') { ?>
 
     <div class="contenu">

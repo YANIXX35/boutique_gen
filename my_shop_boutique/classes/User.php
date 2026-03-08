@@ -8,7 +8,6 @@
             $this->connexion = $base_D;
         }
 
-        // 1. CRÉER UN COMPTE
         public function creerCompte($username, $email, $password) {
             $verif = $this->connexion->prepare("SELECT id FROM " . $this->nom_Table . " WHERE email = ?");
             $verif->execute([$email]);
@@ -28,7 +27,6 @@
             return "Une erreur est survenue lors de l'inscription.";
         }
 
-        // 2. SE CONNECTER
         public function seConnecter($email, $password) {
             $requete = "SELECT * FROM " . $this->nom_Table . " WHERE email = ?";
             $stmt    = $this->connexion->prepare($requete);
@@ -48,7 +46,6 @@
             return false;
         }
 
-        // 3. LIRE TOUS LES UTILISATEURS
         public function lire_Tout() {
             $requete = "SELECT id, username, email, admin FROM " . $this->nom_Table;
             $stmt    = $this->connexion->prepare($requete);
@@ -56,7 +53,6 @@
             return $stmt;
         }
 
-        // 4. TROUVER UN UTILISATEUR PAR SON ID
         public function trouver($id) {
             $requete = "SELECT id, username, email, admin FROM " . $this->nom_Table . " WHERE id = ?";
             $stmt    = $this->connexion->prepare($requete);
@@ -64,21 +60,18 @@
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }
 
-        // 5. MODIFIER UN UTILISATEUR
         public function modifier($id, $username, $email, $admin) {
             $requete = "UPDATE " . $this->nom_Table . " SET username = ?, email = ?, admin = ? WHERE id = ?";
             $stmt    = $this->connexion->prepare($requete);
             return $stmt->execute([$username, $email, $admin, $id]);
         }
 
-        // 6. SUPPRIMER UN COMPTE
         public function supprimer_Compte($id) {
             $requete = "DELETE FROM " . $this->nom_Table . " WHERE id = ?";
             $stmt    = $this->connexion->prepare($requete);
             return $stmt->execute([$id]);
         }
 
-        // 7. CHANGER LE RÔLE (membre ↔ admin)
         public function miseAjourStatus($id, $adminStatut) {
             $requete = "UPDATE " . $this->nom_Table . " SET admin = ? WHERE id = ?";
             $stmt    = $this->connexion->prepare($requete);

@@ -38,7 +38,6 @@
         $produits = $produit->lire_Produit();
     }
 
-    // On récupère tous les produits dans un tableau pour pouvoir les compter
     $listeProduits = [];
     while ($p = $produits->fetch(PDO::FETCH_ASSOC)) {
         $listeProduits[] = $p;
@@ -58,7 +57,7 @@
 </head>
 <body>
 
-<!-- ══ HEADER ══ -->
+<!-- HEADER -->
 <header class="site-header">
     <div class="header-inner">
         <a href="index.php" class="site-logo">
@@ -86,7 +85,7 @@
     </div>
 </header>
 
-<!-- ══ CORPS ══ -->
+<!-- LE CORPS -->
 <div class="page-layout">
 
     <!-- SIDEBAR -->
@@ -145,7 +144,6 @@
         </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="main-content">
 
         <!-- BARRE DE RECHERCHE -->
@@ -161,7 +159,6 @@
                 <select name="cat">
                     <option value="0">Toutes les catégories</option>
                     <?php
-                    // On refait une nouvelle requête pour avoir la liste des catégories
                     $cats2 = $categorie->lire_Categorie();
                     while ($c = $cats2->fetch(PDO::FETCH_ASSOC)) {
                     ?>
@@ -255,7 +252,7 @@
     </main>
 </div>
 
-<!-- ══ FOOTER ══ -->
+<!-- LE FOOTER -->
 <footer class="site-footer">
     <div class="footer-container">
         <div class="footer-column">

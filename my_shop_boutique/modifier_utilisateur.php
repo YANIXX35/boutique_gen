@@ -3,13 +3,11 @@
     require_once 'classes/Database.php';
     require_once 'classes/User.php';
 
-    // 1. SÉCURITÉ
     if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
         header("Location: index.php");
         exit();
     }
 
-    // 2. VÉRIFICATION DE L'ID
     if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
         header("Location: admin.php?section=utilisateurs");
         exit();
@@ -21,7 +19,6 @@
 
     $id = intval($_GET['id']);
 
-    // 3. RÉCUPÉRATION DE L'UTILISATEUR
     $u = $utilisateur->trouver($id);
 
     if (!$u) {
@@ -29,7 +26,6 @@
         exit();
     }
 
-    // 4. TRAITEMENT DU FORMULAIRE
     $erreurs = [];
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -38,7 +34,6 @@
         $email    = trim($_POST['email']    ?? '');
         $admin    = isset($_POST['admin']) ? 1 : 0;
 
-        // Validations
         if (empty($username)) {
             $erreurs[] = "Le nom d'utilisateur est obligatoire.";
         }
@@ -58,7 +53,6 @@
             }
         }
 
-        // On met à jour les valeurs affichées si erreur
         $u['username'] = $username;
         $u['email']    = $email;
         $u['admin']    = $admin;
@@ -95,8 +89,7 @@
             name="username"
             placeholder="Nom d'utilisateur"
             value="<?php echo htmlspecialchars($u['username']); ?>"
-            required
-        >
+            required>
 
         <label for="email">Adresse email</label>
         <input
@@ -105,16 +98,14 @@
             name="email"
             placeholder="email@exemple.com"
             value="<?php echo htmlspecialchars($u['email']); ?>"
-            required
-        >
+            required>
 
         <label>Droits administrateur</label>
         <label class="admin-toggle">
             <input
                 type="checkbox"
                 name="admin"
-                <?php echo ($u['admin'] == 1) ? 'checked' : ''; ?>
-            >
+                <?php echo ($u['admin'] == 1) ? 'checked' : ''; ?>>
             <div class="admin-toggle-label">
                 Accès administrateur
                 <span>Cocher pour accorder les droits admin à cet utilisateur</span>
